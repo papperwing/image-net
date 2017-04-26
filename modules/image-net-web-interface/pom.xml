@@ -1,0 +1,28 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>cz.muni.fi.image-net</groupId>
+  <artifactId>image-net-web-interface</artifactId>
+  <packaging>war</packaging>
+  <version>1.0</version>
+  <name>Neural network for image categorization-Web interface</name>
+
+	<parent>
+		<groupId>cz.muni.fi.image-net</groupId>
+		<artifactId>image-net</artifactId>
+		<version>1.0</version>
+		<relativePath>../..</relativePath>
+	</parent>
+
+  <build>
+    <finalName>neural-net-web-interface</finalName>
+  </build>
+  
+  <dependencies>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.13</version>
+        </dependency>
+  </dependencies>
+</project>
