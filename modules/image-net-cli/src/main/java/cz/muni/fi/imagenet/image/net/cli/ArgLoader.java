@@ -21,4 +21,6 @@ public class ArgLoader {
     public static Long time;
     @Argument(alias = "logLocation", description="Loaction of additional logfile", required = false)
     public static String logLocation;
+    @Argument(alias = "testMethod", description="Run specific test method", required = false)
+    public static String testMethod;
 }

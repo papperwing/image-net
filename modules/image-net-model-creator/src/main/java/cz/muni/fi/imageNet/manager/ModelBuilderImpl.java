@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.TreeSet;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.Updater;
+import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
@@ -52,7 +53,7 @@ public class ModelBuilderImpl implements ModelBuilder {
             //In cases where there already exists a setting the fine tune setting will
             //  override the setting for all layers that are not "frozen".
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
-                    .learningRate(5e-5)
+                    .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                     .updater(Updater.NESTEROVS)
                     .seed(this.config.getSeed())
@@ -70,6 +71,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                             .dist(new NormalDistribution(0, 0.2 * (2.0 / (4096 + numClasses)))) //This weight init dist gave better results than Xavier
                             .activation(Activation.SIGMOID).build(),
                             "fc2")
+                    .setWorkspaceMode(WorkspaceMode.SEPARATE)
                     .build();
             logger.info(vgg16Transfer.summary());
             logger.debug("Number of elements: " + vgg16Transfer.params().lengthLong());

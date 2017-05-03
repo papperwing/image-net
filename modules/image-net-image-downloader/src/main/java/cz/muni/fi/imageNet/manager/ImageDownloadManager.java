@@ -61,6 +61,7 @@ public class ImageDownloadManager {
         }
         writeStatistics(result);
         logger.info("Statistics: \n" + result.getStats().toString());
+        pool.shutdown();
         return result;
     }
 

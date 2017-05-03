@@ -127,7 +127,7 @@ public class Configuration {
     /**
      * 
      */
-    private double learningRate = 0.9;
+    private double learningRate = 0.1;
 
     public double getLearningRate() {
         return learningRate;

@@ -22,8 +22,10 @@ import org.slf4j.LoggerFactory;
  */
 public class App {
 
+    public static Logger logger = LoggerFactory.getLogger(App.class);
+
     public static void main(String[] args) throws Exception {
-        setCustomUncaughtExceptionHandler();
+        //setCustomUncaughtExceptionHandler();
         final List<String> parse;
         try {
             parse = Args.parse(ArgLoader.class, args);
@@ -33,7 +35,6 @@ public class App {
             return;
         }
 
-        Logger logger = LoggerFactory.getLogger(App.class);
         if (ArgLoader.logLocation != null) {
             logger = setupLogBack((ch.qos.logback.classic.Logger) logger);
         }
@@ -74,7 +75,7 @@ public class App {
         DataSampleDTO[] dataset = new DataSampleDTO[datasetList.size()];
         dataset = datasetList.toArray(dataset);
 
-        api.getModel(
+        api.getTestModel(
                 ArgLoader.modelName,
                 dataset,
                 7,
@@ -116,4 +117,4 @@ public class App {
         });
     }
 
-}
+        }

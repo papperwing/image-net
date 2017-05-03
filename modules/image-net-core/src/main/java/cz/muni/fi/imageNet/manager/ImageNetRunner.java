@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -18,6 +19,7 @@ import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
+import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +38,7 @@ public class ImageNetRunner {
     private final int width = 224;
     private final int channels = 3;
 
-    private final int batchSize = 50;
+    private final int batchSize = 5;
     private final double treshold = 0.5;
     private final double splitPercentage = 0.8;
 
@@ -76,7 +78,8 @@ public class ImageNetRunner {
 
                 final org.nd4j.linalg.dataset.DataSet train = split.getTrain();
                 testSet.add(split.getTest());
-
+                
+                Nd4j.getMemoryManager().setAutoGcWindow(2500);
                 model.getModel().fit(train);
             }
             logger.debug("Starting to test after " + n + " epoch");
@@ -160,7 +163,7 @@ public class ImageNetRunner {
                     break;
             }
 
-            return dataIter;
+            return new AsyncDataSetIterator(dataIter,3,true);
         } catch (IOException ex) {
             logger.error("Loading of image was not sucessfull.", ex);
         } catch (InterruptedException ex) {

@@ -130,5 +130,42 @@ public class ImageNetAPI {
         }
         return new UrlImage(dataSample.getUrl(), labels);
     }
+    
+    public File getTestModel(String modelName, DataSampleDTO[] dataSamples, int outputSize, ModelType modelType) throws IOException {
+        
+        final long startTime = System.currentTimeMillis();
+        
+        logger.info("Starting to build model: " + modelName);
+
+        final DataSetBuilder datasetBuilder = new DataSetBuilderImpl(config);
+
+        final ModelBuilder modelBuilder = new ModelBuilderImpl(config);
+
+        final ImageNetRunner runner = new ImageNetRunner(config);
+
+        logger.info("Process initialized.");
+        
+        DataSet dataSet = datasetBuilder.buildDataSet(
+                getDataSampleCollection(dataSamples),
+                getDataSampleLabels(dataSamples)
+        );
+        logger.info("Prepared dataset.");
+        logger.debug(dataSet.getLabels().toString());
+        
+        NeuralNetModel model = modelBuilder.createModel(
+                modelType,
+                dataSet
+        );
+        logger.info("Created model.");
+        
+        runner.trainModel(
+                model,
+                dataSet,
+                startTime
+        );
+        logger.info("Trained model.");
+        
+        return null;//model.toFile(modelName);
+    }
 
 }
