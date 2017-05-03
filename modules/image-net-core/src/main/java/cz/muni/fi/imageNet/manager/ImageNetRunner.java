@@ -15,7 +15,6 @@ import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
@@ -60,34 +59,23 @@ public class ImageNetRunner {
      * @return
      */
     public NeuralNetModel trainModel(final NeuralNetModel model, DataSet dataset, long startTime) {
-
+        
+        DataSet testSet = dataset.split(0.8);
         final DataSetIterator trainIterator = prepareDataSetIterator(dataset, model.getType());
+        final DataSetIterator testIterator = prepareDataSetIterator(testSet, model.getType());
 
         for (int n = 0; n < conf.getEpoch(); n++) {
 
             EvaluationBinary eval = new EvaluationBinary(dataset.getLabelStrings().size());
             eval.setLabelNames(dataset.getLabelStrings());
-            List<org.nd4j.linalg.dataset.DataSet> testSet = new ArrayList<>();
             logger.debug("Starting to train in " + n + " epoch");
-            int i = 0;
-            while (trainIterator.hasNext()) {
-                logger.debug("cycle " + i + "started");
-                i++;
-                final org.nd4j.linalg.dataset.DataSet next = trainIterator.next();
-                final SplitTestAndTrain split = next.splitTestAndTrain(splitPercentage);
-
-                final org.nd4j.linalg.dataset.DataSet train = split.getTrain();
-                testSet.add(split.getTest());
-                
-                Nd4j.getMemoryManager().setAutoGcWindow(2500);
-                model.getModel().fit(train);
-            }
+            Nd4j.getMemoryManager().setAutoGcWindow(2500);
+            model.getModel().fit(trainIterator);
             logger.debug("Starting to test after " + n + " epoch");
-            for (org.nd4j.linalg.dataset.DataSet test : testSet) {
-                eval.merge(customEval(model.getModel(), dataset.getLabelStrings(), test));
-            }
+            eval.merge(customEval(model.getModel(), dataset.getLabelStrings(), testIterator));
             logger.info("[epoch:" + n + "]:\n" + eval.stats());
             trainIterator.reset();
+            testIterator.reset();
             if (this.conf.isTimed()
                     && startTime + this.conf.getTime() >= System.currentTimeMillis()) {
                 return model;
@@ -100,22 +88,11 @@ public class ImageNetRunner {
     public EvaluationBinary customEval(
             ComputationGraph model,
             List<String> labelsList,
-            org.nd4j.linalg.dataset.DataSet dataset
+            DataSetIterator datasetIterator
     ) {
         EvaluationBinary eval = new EvaluationBinary(labelsList.size());
-        INDArray features = dataset.getFeatures();
-        INDArray labels = dataset.getLabels();
 
-        INDArray[] out;
-        out = model.output(false, features);
-        logger.trace("Output array: " + out.toString());
-        if (labels.rank() == 3) {
-            eval.evalTimeSeries(labels, out[0]);
-        } else {
-            eval.eval(labels, out[0]);
-        }
-
-        return eval;
+        return model.doEvaluation(datasetIterator, eval);
     }
 
     /**
@@ -163,7 +140,7 @@ public class ImageNetRunner {
                     break;
             }
 
-            return new AsyncDataSetIterator(dataIter,3,true);
+            return new AsyncDataSetIterator(dataIter, 3, true);
         } catch (IOException ex) {
             logger.error("Loading of image was not sucessfull.", ex);
         } catch (InterruptedException ex) {

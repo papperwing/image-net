@@ -3,9 +3,7 @@ package cz.muni.fi.imageNet.Pojo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  *
@@ -13,7 +11,7 @@ import java.util.Set;
  */
 public class DataSet {
 
-    private final Collection<DataSample> dataList;
+    private Collection<DataSample> dataList;
 
     private final int dataSetLenght;
 
@@ -48,6 +46,17 @@ public class DataSet {
             result.add(label.getLabelName());
         }
         return Collections.unmodifiableList(new ArrayList(result));
+    }
+    
+    public DataSet split(double splitPercentage){
+        if(splitPercentage < 0 || splitPercentage > 1) throw new IllegalArgumentException("Percentage must be between 0 and 1.");
+        int splitIndex = (int) Math.ceil(this.dataSetLenght*splitPercentage); 
+        
+        Collection<DataSample> splitList = new ArrayList(this.dataList).subList(splitIndex, dataSetLenght-1);
+        dataList = new ArrayList(this.dataList).subList(0, splitIndex);
+        DataSet splitSet = new DataSet(splitList, labels);
+    
+        return splitSet;
     }
 
 }
