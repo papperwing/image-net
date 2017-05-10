@@ -61,8 +61,9 @@ public class ImageNetRunner {
      */
     public NeuralNetModel trainModel(final NeuralNetModel model, DataSet dataset, long startTime) {
         
-        DataSet testSet = dataset.split(0.8);
+        DataSet testSet = dataset.split(splitPercentage);
         final DataSetIterator trainIterator = prepareDataSetIterator(dataset, model.getType());
+        
         final DataSetIterator testIterator = prepareDataSetIterator(testSet, model.getType());
 
         for (int n = 0; n < conf.getEpoch(); n++) {
@@ -86,7 +87,7 @@ public class ImageNetRunner {
         return model;
     }
 
-    public EvaluationBinary customEval(
+    public EvaluationBinary[] customEval(
             ComputationGraph model,
             List<String> labelsList,
             DataSetIterator datasetIterator
