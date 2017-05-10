@@ -12,6 +12,7 @@ import java.util.List;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
+import org.deeplearning4j.eval.EvaluationBinary;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
 import org.nd4j.linalg.api.ndarray.INDArray;
