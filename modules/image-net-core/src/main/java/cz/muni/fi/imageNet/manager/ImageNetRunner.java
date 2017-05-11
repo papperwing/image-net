@@ -87,14 +87,16 @@ public class ImageNetRunner {
         return model;
     }
 
-    public EvaluationBinary[] customEval(
+    public EvaluationBinary customEval(
             ComputationGraph model,
             List<String> labelsList,
             DataSetIterator datasetIterator
     ) {
         EvaluationBinary eval = new EvaluationBinary(labelsList.size());
 
-        return model.doEvaluation(datasetIterator, eval);
+        model.doEvaluation(datasetIterator, eval);
+        
+        return eval;
     }
 
     /**
