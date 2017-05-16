@@ -24,17 +24,17 @@ public class NeuralNetModel {
     private boolean trained;
     
 
-    public NeuralNetModel(final ComputationGraph model, ModelType type) {
+    public NeuralNetModel(final ComputationGraph model, List<Label> labelList, ModelType type) {
         this.trained = false;
-        this.labels = null;
+        this.labels = labelList;
         this.model = model;
         this.type = type;
     }
 
-    public NeuralNetModel(final File savedModel, ModelType type) throws IOException {
+    public NeuralNetModel(final File savedModel, List<Label> labelList, ModelType type) throws IOException {
         this.trained = false;
         this.model = ModelSerializer.restoreComputationGraph(savedModel);
-        this.labels = null;
+        this.labels = labelList;
         this.type = type;
     }
 

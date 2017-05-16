@@ -20,7 +20,6 @@ import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculatorCG;
 import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationCondition;
 import org.deeplearning4j.earlystopping.termination.MaxTimeIterationTerminationCondition;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
-import org.deeplearning4j.eval.EvaluationBinary;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -81,19 +80,7 @@ public class ImageNetRunner {
                 this.conf.getTempFolder()
         );
         
-        return new NeuralNetModel(result.getBestModel(), ModelType.VGG16);
-    }
-
-    public EvaluationBinary customEval(
-            ComputationGraph model,
-            List<String> labelsList,
-            DataSetIterator datasetIterator
-    ) {
-        EvaluationBinary eval = new EvaluationBinary(labelsList.size());
-
-        model.doEvaluation(datasetIterator, eval);
-
-        return eval;
+        return new NeuralNetModel(result.getBestModel(), dataset.getLabels() ,ModelType.VGG16);
     }
 
     /**

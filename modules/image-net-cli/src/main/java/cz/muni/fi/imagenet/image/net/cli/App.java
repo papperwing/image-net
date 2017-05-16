@@ -3,7 +3,6 @@ package cz.muni.fi.imagenet.image.net.cli;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.classic.LoggerContext;
-import com.sampullara.cli.Args;
 import cz.muni.fi.imageNet.POJO.DataSampleDTO;
 import cz.muni.fi.imageNet.Pojo.Configuration;
 import cz.muni.fi.imageNet.Pojo.ModelType;
@@ -76,7 +75,11 @@ public class App {
             case CLASSIFY:
                 String imageURI = ArgLoader.imageURI;
                 String modelLocation = ArgLoader.modelLoc;
-                logger.info("Labels: " + api.classify(modelLocation, imageURI).toString());
+                List<String> labelNameList = new ArrayList();
+                for (String labelName : ArgLoader.labelList){
+                    labelNameList.add(imageURI);
+                }
+                logger.info("Labels: " + api.classify(modelLocation, labelNameList, imageURI).toString());
                 
                 break;
             default:

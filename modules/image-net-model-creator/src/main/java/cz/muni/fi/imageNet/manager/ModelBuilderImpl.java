@@ -77,6 +77,7 @@ public class ModelBuilderImpl implements ModelBuilder {
 
             return new NeuralNetModel(
                     vgg16Transfer,
+                    dataSet.getLabels(),
                     modelType
             );
         } catch (InvalidKerasConfigurationException ex) {
