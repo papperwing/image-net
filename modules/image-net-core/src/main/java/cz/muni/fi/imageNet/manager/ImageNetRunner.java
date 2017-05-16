@@ -9,9 +9,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
+import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
+import org.deeplearning4j.earlystopping.EarlyStoppingResult;
+import org.deeplearning4j.earlystopping.saver.LocalFileGraphSaver;
+import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculatorCG;
+import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationCondition;
+import org.deeplearning4j.earlystopping.termination.MaxTimeIterationTerminationCondition;
+import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
 import org.deeplearning4j.eval.EvaluationBinary;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
@@ -60,31 +68,20 @@ public class ImageNetRunner {
      * @return
      */
     public NeuralNetModel trainModel(final NeuralNetModel model, DataSet dataset, long startTime) {
-        
+
         DataSet testSet = dataset.split(splitPercentage);
         final DataSetIterator trainIterator = prepareDataSetIterator(dataset, model.getType());
-        
+
         final DataSetIterator testIterator = prepareDataSetIterator(testSet, model.getType());
-
-        for (int n = 0; n < conf.getEpoch(); n++) {
-
-            EvaluationBinary eval = new EvaluationBinary(dataset.getLabelStrings().size());
-            eval.setLabelNames(dataset.getLabelStrings());
-            logger.debug("Starting to train in " + n + " epoch");
-            Nd4j.getMemoryManager().setAutoGcWindow(2500);
-            model.getModel().fit(trainIterator);
-            logger.debug("Starting to test after " + n + " epoch");
-            eval.merge(customEval(model.getModel(), dataset.getLabelStrings(), testIterator));
-            logger.info("[epoch:" + n + "]:\n" + eval.stats());
-            trainIterator.reset();
-            testIterator.reset();
-            if (this.conf.isTimed()
-                    && startTime + this.conf.getTime() >= System.currentTimeMillis()) {
-                return model;
-
-            }
-        }
-        return model;
+        Nd4j.getMemoryManager().setAutoGcWindow(2500);
+        EarlyStoppingResult<ComputationGraph> result = runEarlyStoppingTrain(
+                model.getModel(), 
+                trainIterator, 
+                testIterator, 
+                this.conf.getTempFolder()
+        );
+        
+        return new NeuralNetModel(result.getBestModel(), ModelType.VGG16);
     }
 
     public EvaluationBinary customEval(
@@ -95,7 +92,7 @@ public class ImageNetRunner {
         EvaluationBinary eval = new EvaluationBinary(labelsList.size());
 
         model.doEvaluation(datasetIterator, eval);
-        
+
         return eval;
     }
 
@@ -106,7 +103,7 @@ public class ImageNetRunner {
      * @param imageLocation
      * @return
      */
-    public List<Label> clasify(final NeuralNetModel model, String imageLocation) {
+    public List<Label> classify(final NeuralNetModel model, String imageLocation) {
 
         try {
             model.getModel().init();
@@ -172,6 +169,26 @@ public class ImageNetRunner {
         DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
         scaler.transform(imageVector);
         return imageVector;
+    }
+
+    private EarlyStoppingResult runEarlyStoppingTrain(
+            ComputationGraph model, 
+            DataSetIterator trainDataSet,
+            DataSetIterator testDataSet, 
+            String tempDirLoc
+    ) {
+        EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder()
+                .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
+                .modelSaver(new LocalFileGraphSaver(tempDirLoc))
+                .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true));
+
+        if (this.conf.isTimed()) {
+            builder.iterationTerminationConditions(new MaxTimeIterationTerminationCondition(this.conf.getTime(), TimeUnit.MINUTES));
+        }
+        EarlyStoppingConfiguration<ComputationGraph> esConfig = builder.build();
+        EarlyStoppingGraphTrainer trainer = new EarlyStoppingGraphTrainer(esConfig, model, trainDataSet);
+
+        return trainer.fit();
     }
 
 }

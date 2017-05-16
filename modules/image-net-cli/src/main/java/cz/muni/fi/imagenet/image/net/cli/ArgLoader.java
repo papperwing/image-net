@@ -22,5 +22,9 @@ public class ArgLoader {
     @Argument(alias = "logLocation", description="Loaction of additional logfile", required = false)
     public static String logLocation;
     @Argument(alias = "testMethod", description="Run specific test method", required = false)
-    public static String testMethod;
+    public static Method testMethod;
+    @Argument(alias = "imageURI", description="Location of image for classification", required = false)
+    public static String imageURI;
+    @Argument(alias = "modelLoc", description="Trained model location", required = false)
+    public static String modelLoc;
 }

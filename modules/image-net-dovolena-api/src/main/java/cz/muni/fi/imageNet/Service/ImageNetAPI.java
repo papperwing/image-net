@@ -167,5 +167,19 @@ public class ImageNetAPI {
         
         return null;//model.toFile(modelName);
     }
+    
+    public List<String> classify(String modelLoc, String imageURI) throws IOException{
+        final ImageNetRunner runner = new ImageNetRunner(config);
+        NeuralNetModel model = new NeuralNetModel(new File(modelLoc), ModelType.VGG16);
+        return getLabelNames(runner.classify(model, imageURI));
+    }
+
+    private List<String> getLabelNames(List<Label> labels) {
+        List<String> result = new ArrayList();
+        for (Label label : labels){
+            result.add(label.getLabelName());
+        }
+        return result;
+    }
 
 }

@@ -6,7 +6,6 @@ import cz.muni.fi.imageNet.Pojo.ModelType;
 import cz.muni.fi.imageNet.Pojo.NetworkConfiguration;
 import cz.muni.fi.imageNet.Pojo.NeuralNetModel;
 import java.io.IOException;
-import java.util.TreeSet;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
@@ -78,7 +77,6 @@ public class ModelBuilderImpl implements ModelBuilder {
 
             return new NeuralNetModel(
                     vgg16Transfer,
-                    new TreeSet(dataSet.getLabels()),
                     modelType
             );
         } catch (InvalidKerasConfigurationException ex) {

@@ -31,6 +31,29 @@ public class Configuration {
         this.imageDownloadFolder = imageDownloadFolder;
     }
     //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="tempFolder">
+    /**
+     * Location used for storing models. By default system use linux "/tmp/imageNet".
+     */
+    private String tempFolder = "/tmp/imageNet";
+
+    /**
+     * Getter for {@link Configuration#tempFolder} constant. 
+     * @return Location in String
+     */
+    public String getTempFolder() {
+        return tempFolder;
+    }
+
+    /**
+     * Setter for {@link Configuration#tempFolder} constant.
+     * @param tempFolder 
+     */
+    public void setTempFolder(String tempFolder) {
+        this.tempFolder = tempFolder;
+    }
+    //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="corePoolSize">
     /**

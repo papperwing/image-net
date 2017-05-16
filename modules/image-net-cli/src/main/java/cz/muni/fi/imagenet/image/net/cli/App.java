@@ -25,38 +25,13 @@ public class App {
     public static Logger logger = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws Exception {
-        //setCustomUncaughtExceptionHandler();
-        final List<String> parse;
-        try {
-            parse = Args.parse(ArgLoader.class, args);
-        } catch (IllegalArgumentException e) {
-            Args.usage(ArgLoader.class);
-            System.exit(1);
-            return;
-        }
 
-        if (ArgLoader.logLocation != null) {
-            logger = setupLogBack((ch.qos.logback.classic.Logger) logger);
-        }
-        
         logger.info("Started command line interface.");
         File datasetFile = new File(ArgLoader.datasetLoc);
         if (!datasetFile.isFile() || !datasetFile.canRead()) {
             throw new IllegalArgumentException("There is wrong path to dataset file.");
         }
-        logger.info("Loading dataset: " + datasetFile.getAbsolutePath());
 
-        List<DataSampleDTO> datasetList = new ArrayList();
-
-        try (final BufferedReader fileReader = new BufferedReader(new FileReader(datasetFile))) {
-            String line = fileReader.readLine();
-            while (line != null) {
-
-                DataSampleDTO sample = new DataSampleDTO(line);
-                datasetList.add(sample);
-                line = fileReader.readLine();
-            }
-        }
         Configuration config = new Configuration();
 
         if (ArgLoader.imageLoc != null) {
@@ -72,15 +47,41 @@ public class App {
 
         ImageNetAPI api = new ImageNetAPI(config);
 
-        DataSampleDTO[] dataset = new DataSampleDTO[datasetList.size()];
-        dataset = datasetList.toArray(dataset);
+        switch (ArgLoader.testMethod) {
+            case TRAIN:
+                logger.info("Loading dataset: " + datasetFile.getAbsolutePath());
 
-        api.getTestModel(
-                ArgLoader.modelName,
-                dataset,
-                7,
-                ArgLoader.model != null ? ArgLoader.model : ModelType.VGG16
-        );
+                List<DataSampleDTO> datasetList = new ArrayList();
+
+                try (final BufferedReader fileReader = new BufferedReader(new FileReader(datasetFile))) {
+                    String line = fileReader.readLine();
+                    while (line != null) {
+
+                        DataSampleDTO sample = new DataSampleDTO(line);
+                        datasetList.add(sample);
+                        line = fileReader.readLine();
+                    }
+                }
+
+                DataSampleDTO[] dataset = new DataSampleDTO[datasetList.size()];
+                dataset = datasetList.toArray(dataset);
+
+                api.getModel(
+                        ArgLoader.modelName,
+                        dataset,
+                        7,
+                        ArgLoader.model != null ? ArgLoader.model : ModelType.VGG16
+                );
+                break;
+            case CLASSIFY:
+                String imageURI = ArgLoader.imageURI;
+                String modelLocation = ArgLoader.modelLoc;
+                logger.info("Labels: " + api.classify(modelLocation, imageURI).toString());
+                
+                break;
+            default:
+
+        }
         logger.info("Finnished");
     }
 
@@ -117,4 +118,4 @@ public class App {
         });
     }
 
-        }
+}
