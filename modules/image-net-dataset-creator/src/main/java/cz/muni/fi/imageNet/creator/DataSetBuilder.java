@@ -1,7 +1,7 @@
-package cz.muni.fi.imagenet.image.net.dataset.creator;
+package cz.muni.fi.imageNet.creator;
 
 import cz.muni.fi.imageNet.Pojo.DataSample;
-import cz.muni.fi.imageNet.Pojo.DataSet;
+import cz.muni.fi.imageNet.dataset.DataSetImpl;
 import cz.muni.fi.imageNet.Pojo.Label;
 import java.util.Collection;
 import java.util.List;
@@ -13,6 +13,6 @@ import java.util.List;
  */
 public interface DataSetBuilder {
     
-    DataSet buildDataSet(Collection<DataSample> downloadResult, List<Label> labels);
+    DataSetImpl buildDataSet(Collection<DataSample> downloadResult, List<Label> labels);
 
 }

@@ -4,15 +4,15 @@ import cz.muni.fi.imageNet.Pojo.Configuration;
 import cz.muni.fi.imageNet.Pojo.DataImage;
 import cz.muni.fi.imageNet.Pojo.DataSample;
 import cz.muni.fi.imageNet.POJO.DataSampleDTO;
-import cz.muni.fi.imageNet.Pojo.DataSet;
+import cz.muni.fi.imageNet.dataset.DataSetImpl;
 import cz.muni.fi.imageNet.Pojo.DownloadResult;
 import cz.muni.fi.imageNet.Pojo.Label;
 import cz.muni.fi.imageNet.Pojo.ModelType;
 import cz.muni.fi.imageNet.Pojo.NeuralNetModel;
 import cz.muni.fi.imageNet.Pojo.UrlImage;
 import cz.muni.fi.imageNet.enums.DownloadState;
-import cz.muni.fi.imagenet.image.net.dataset.creator.DataSetBuilder;
-import cz.muni.fi.imagenet.image.net.dataset.creator.DataSetBuilderImpl;
+import cz.muni.fi.imageNet.creator.DataSetBuilder;
+import cz.muni.fi.imageNet.creator.DataSetBuilderImpl;
 import cz.muni.fi.imageNet.manager.ImageDownloadManager;
 import cz.muni.fi.imageNet.manager.ImageNetRunner;
 import cz.muni.fi.imageNet.manager.ModelBuilder;
@@ -61,12 +61,16 @@ public class ImageNetAPI {
 
         logger.info("Process initialized.");
 
-        DataSet dataSet = datasetBuilder.buildDataSet(
+        DataSetImpl dataSet = datasetBuilder.buildDataSet(
                 getDataSampleCollection(dataSamples),
                 getDataSampleLabels(dataSamples)
         );
         logger.info("Prepared dataset.");
-        logger.debug(dataSet.getLabels().toString());
+        StringBuilder labelString = new StringBuilder();
+        for (Label label : dataSet.getLabels()) {
+            labelString.append(label.getLabelName());
+        }
+        logger.debug(labelString.toString());
 
         NeuralNetModel model = modelBuilder.createModel(
                 modelType,

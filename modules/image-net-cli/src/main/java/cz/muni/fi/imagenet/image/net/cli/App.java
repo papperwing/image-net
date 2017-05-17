@@ -34,10 +34,6 @@ public class App {
             return;
         }
         logger.info("Started command line interface.");
-        File datasetFile = new File(ArgLoader.datasetLoc);
-        if (!datasetFile.isFile() || !datasetFile.canRead()) {
-            throw new IllegalArgumentException("There is wrong path to dataset file.");
-        }
 
         Configuration config = new Configuration();
 
@@ -56,6 +52,10 @@ public class App {
 
         switch (ArgLoader.method) {
             case "TRAIN":
+                File datasetFile = new File(ArgLoader.datasetLoc);
+                if (!datasetFile.isFile() || !datasetFile.canRead()) {
+                    throw new IllegalArgumentException("There is wrong path to dataset file.");
+                }
                 logger.info("Loading dataset: " + datasetFile.getAbsolutePath());
 
                 List<DataSampleDTO> datasetList = new ArrayList();

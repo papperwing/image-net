@@ -8,8 +8,8 @@ package cz.muni.fi.imageNet.manager;
 import cz.muni.fi.imageNet.Pojo.DataSample;
 import cz.muni.fi.imageNet.Pojo.DataSet;
 import cz.muni.fi.imageNet.Pojo.Label;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -68,19 +68,19 @@ public class ImageNetRecordReaderTest {
         final Label test4 = new Label("test4");
         labels2.add(test4);
         labels.add(test4);
-        
+
         List<String> expResult = new ArrayList<String>();
         expResult.add("test1");
         expResult.add("test2");
         expResult.add("test3");
         expResult.add("test4");
-        
+
         DataSample sample2 = new DataSample("testLocation2", labels2);
         final ArrayList sampleList = new ArrayList();
         sampleList.add(sample1);
         sampleList.add(sample2);
-        
-        DataSet dataset = new DataSet(sampleList,labels);
+
+        DataSet dataset = new DataSetDummy(sampleList, labels);
 
         ImageNetSplit split = new ImageNetSplit(dataset);
         split.initialize();
@@ -91,6 +91,37 @@ public class ImageNetRecordReaderTest {
             assertEquals(expResult, result);
         } catch (Exception ex) {
             fail("Test failed on Exception");
+        }
+    }
+
+    private static class DataSetDummy implements DataSet {
+
+        List<DataSample> sampleList;
+        List<Label> labels;
+
+        public DataSetDummy(ArrayList sampleList, List<Label> labels) {
+            this.sampleList = sampleList;
+            this.labels = labels;
+        }
+
+        @Override
+        public Collection<DataSample> getData() {
+            return sampleList;
+        }
+
+        @Override
+        public int lenght() {
+            return sampleList.size();
+        }
+
+        @Override
+        public List<Label> getLabels() {
+            return labels;
+        }
+
+        @Override
+        public DataSet split(double percentage) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     }
 
