@@ -16,6 +16,7 @@
         <module>modules/image-net-web-interface</module>
         <module>modules/image-net-dovolena-api</module>
         <module>modules/image-net-cli</module>
+        <module>modules/image-net-dataset-creator</module>
     </modules>
 
     <build>

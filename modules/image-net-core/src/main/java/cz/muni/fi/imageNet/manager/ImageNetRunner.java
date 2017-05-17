@@ -74,13 +74,13 @@ public class ImageNetRunner {
         final DataSetIterator testIterator = prepareDataSetIterator(testSet, model.getType());
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
         EarlyStoppingResult<ComputationGraph> result = runEarlyStoppingTrain(
-                model.getModel(), 
-                trainIterator, 
-                testIterator, 
+                model.getModel(),
+                trainIterator,
+                testIterator,
                 this.conf.getTempFolder()
         );
-        
-        return new NeuralNetModel(result.getBestModel(), dataset.getLabels() ,ModelType.VGG16);
+
+        return new NeuralNetModel(result.getBestModel(), dataset.getLabels(), ModelType.VGG16);
     }
 
     /**
@@ -90,16 +90,19 @@ public class ImageNetRunner {
      * @param imageLocation
      * @return
      */
-    public List<Label> classify(final NeuralNetModel model, String imageLocation) {
+    public List<List<Label>> classify(final NeuralNetModel model, String[] imageLocations) {
 
         try {
             model.getModel().init();
+            List<INDArray> images = new ArrayList<>();
+            for (String imageLocation : imageLocations) {
+                images.add(generateINDArray(new File(imageLocation)));
+            }
 
-            File image = new File(imageLocation);
-            INDArray imageFeatures = generateINDArray(image);
+            INDArray[] imageFeatures = images.toArray(new INDArray[images.size()]);
             return getLabel(
                     new ArrayList(model.getLabels()),
-                    model.getModel().outputSingle(imageFeatures)
+                    model.getModel().output(imageFeatures)
             );
         } catch (IOException ex) {
             logger.error("Loading of image was not sucessfull.", ex);
@@ -138,16 +141,20 @@ public class ImageNetRunner {
         return null;
     }
 
-    private List<Label> getLabel(List<Label> labels, INDArray output) {
+    private List<List<Label>> getLabel(List<Label> labels, INDArray... outputs) {
         //TODO: Vylepšit na iterování skrze INDArray
-        List<Label> result = new ArrayList();
-        double[] asDouble = output.dup().data().asDouble();
-        for (int i = 0; i < asDouble.length; i++) {
-            if (asDouble[i] > treshold) {
-                result.add(labels.get(i));
+        List<List<Label>> results = new ArrayList();
+        for (INDArray output : outputs) {
+            List<Label> result = new ArrayList();
+            double[] asDouble = output.dup().data().asDouble();
+            for (int i = 0; i < asDouble.length; i++) {
+                if (asDouble[i] > treshold) {
+                    result.add(labels.get(i));
+                }
             }
+            results.add(result);
         }
-        return result;
+        return results;
     }
 
     private INDArray generateINDArray(File image) throws IOException {
@@ -159,9 +166,9 @@ public class ImageNetRunner {
     }
 
     private EarlyStoppingResult runEarlyStoppingTrain(
-            ComputationGraph model, 
+            ComputationGraph model,
             DataSetIterator trainDataSet,
-            DataSetIterator testDataSet, 
+            DataSetIterator testDataSet,
             String tempDirLoc
     ) {
         EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder()

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sampullara.cli.Args;
 
 /**
  *
@@ -24,7 +25,14 @@ public class App {
     public static Logger logger = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws Exception {
-
+        final List<String> parse;
+        try {
+            parse = Args.parse(ArgLoader.class, args);
+        } catch (IllegalArgumentException e) {
+            Args.usage(ArgLoader.class);
+            System.exit(1);
+            return;
+        }
         logger.info("Started command line interface.");
         File datasetFile = new File(ArgLoader.datasetLoc);
         if (!datasetFile.isFile() || !datasetFile.canRead()) {
@@ -46,8 +54,8 @@ public class App {
 
         ImageNetAPI api = new ImageNetAPI(config);
 
-        switch (ArgLoader.testMethod) {
-            case TRAIN:
+        switch (ArgLoader.method) {
+            case "TRAIN":
                 logger.info("Loading dataset: " + datasetFile.getAbsolutePath());
 
                 List<DataSampleDTO> datasetList = new ArrayList();
@@ -72,15 +80,19 @@ public class App {
                         ArgLoader.model != null ? ArgLoader.model : ModelType.VGG16
                 );
                 break;
-            case CLASSIFY:
+            case "CLASSIFY":
                 String imageURI = ArgLoader.imageURI;
                 String modelLocation = ArgLoader.modelLoc;
+
                 List<String> labelNameList = new ArrayList();
-                for (String labelName : ArgLoader.labelList){
+                for (String labelName : ArgLoader.labelList) {
                     labelNameList.add(imageURI);
                 }
-                logger.info("Labels: " + api.classify(modelLocation, labelNameList, imageURI).toString());
-                
+                final List<List<String>> classify = api.classify(modelLocation, labelNameList, imageURI);
+                for (List<String> result : classify) {
+                    logger.info("Labels: " + result.toString());
+                }
+
                 break;
             default:
 

@@ -1,4 +1,4 @@
-package cz.muni.fi.imageNet.manager;
+package cz.muni.fi.imagenet.image.net.dataset.creator;
 
 import cz.muni.fi.imageNet.Pojo.DataSample;
 import cz.muni.fi.imageNet.Pojo.DataSet;

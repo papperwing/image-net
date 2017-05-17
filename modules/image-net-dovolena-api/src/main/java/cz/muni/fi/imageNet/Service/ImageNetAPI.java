@@ -11,8 +11,8 @@ import cz.muni.fi.imageNet.Pojo.ModelType;
 import cz.muni.fi.imageNet.Pojo.NeuralNetModel;
 import cz.muni.fi.imageNet.Pojo.UrlImage;
 import cz.muni.fi.imageNet.enums.DownloadState;
-import cz.muni.fi.imageNet.manager.DataSetBuilder;
-import cz.muni.fi.imageNet.manager.DataSetBuilderImpl;
+import cz.muni.fi.imagenet.image.net.dataset.creator.DataSetBuilder;
+import cz.muni.fi.imagenet.image.net.dataset.creator.DataSetBuilderImpl;
 import cz.muni.fi.imageNet.manager.ImageDownloadManager;
 import cz.muni.fi.imageNet.manager.ImageNetRunner;
 import cz.muni.fi.imageNet.manager.ModelBuilder;
@@ -48,9 +48,9 @@ public class ImageNetAPI {
     }
 
     public File getModel(String modelName, DataSampleDTO[] dataSamples, int outputSize, ModelType modelType) throws IOException {
-        
+
         final long startTime = System.currentTimeMillis();
-        
+
         logger.info("Starting to build model: " + modelName);
 
         final DataSetBuilder datasetBuilder = new DataSetBuilderImpl(config);
@@ -60,27 +60,27 @@ public class ImageNetAPI {
         final ImageNetRunner runner = new ImageNetRunner(config);
 
         logger.info("Process initialized.");
-        
+
         DataSet dataSet = datasetBuilder.buildDataSet(
                 getDataSampleCollection(dataSamples),
                 getDataSampleLabels(dataSamples)
         );
         logger.info("Prepared dataset.");
         logger.debug(dataSet.getLabels().toString());
-        
+
         NeuralNetModel model = modelBuilder.createModel(
                 modelType,
                 dataSet
         );
         logger.info("Created model.");
-        
+
         runner.trainModel(
                 model,
                 dataSet,
                 startTime
         );
         logger.info("Trained model.");
-        
+
         return model.toFile(modelName);
     }
 
@@ -130,60 +130,29 @@ public class ImageNetAPI {
         }
         return new UrlImage(dataSample.getUrl(), labels);
     }
-    
-    public File getTestModel(String modelName, DataSampleDTO[] dataSamples, int outputSize, ModelType modelType) throws IOException {
-        
-        final long startTime = System.currentTimeMillis();
-        
-        logger.info("Starting to build model: " + modelName);
 
-        final DataSetBuilder datasetBuilder = new DataSetBuilderImpl(config);
-
-        final ModelBuilder modelBuilder = new ModelBuilderImpl(config);
-
-        final ImageNetRunner runner = new ImageNetRunner(config);
-
-        logger.info("Process initialized.");
-        
-        DataSet dataSet = datasetBuilder.buildDataSet(
-                getDataSampleCollection(dataSamples),
-                getDataSampleLabels(dataSamples)
-        );
-        logger.info("Prepared dataset.");
-        logger.debug(dataSet.getLabels().toString());
-        
-        NeuralNetModel model = modelBuilder.createModel(
-                modelType,
-                dataSet
-        );
-        logger.info("Created model.");
-        
-        runner.trainModel(
-                model,
-                dataSet,
-                startTime
-        );
-        logger.info("Trained model.");
-        
-        return null;//model.toFile(modelName);
-    }
-    
-    public List<String> classify(String modelLoc, List<String> labelNameList, String imageURI) throws IOException{
+    public List<List<String>> classify(String modelLoc, List<String> labelNameList, String... imageURI) throws IOException {
         final ImageNetRunner runner = new ImageNetRunner(config);
         List<Label> labelList = new ArrayList<Label>();
-        for (String labelName : labelNameList){
+        for (String labelName : labelNameList) {
             labelList.add(new Label(labelName));
         }
-        NeuralNetModel model = new NeuralNetModel(new File(modelLoc), labelList ,ModelType.VGG16);
+        NeuralNetModel model = new NeuralNetModel(new File(modelLoc), labelList, ModelType.VGG16);
+
         return getLabelNames(runner.classify(model, imageURI));
     }
 
-    private List<String> getLabelNames(List<Label> labels) {
-        List<String> result = new ArrayList();
-        for (Label label : labels){
-            result.add(label.getLabelName());
+    private List<List<String>> getLabelNames(List<List<Label>> labelLists) {
+        List<List<String>> results = new ArrayList();
+        for (List<Label> labels : labelLists) {
+            List<String> result = new ArrayList();
+
+            for (Label label : labels) {
+                result.add(label.getLabelName());
+            }
+            results.add(result);
         }
-        return result;
+        return results;
     }
 
 }

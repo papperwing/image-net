@@ -26,6 +26,11 @@
             <artifactId>image-net-model-creator</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>cz.muni.fi.image-net</groupId>
+            <artifactId>image-net-dataset-creator</artifactId>
+            <version>1.0</version>
+        </dependency>
 	<dependency>
             <groupId>cz.muni.fi.image-net</groupId>
             <artifactId>image-net-image-downloader</artifactId>

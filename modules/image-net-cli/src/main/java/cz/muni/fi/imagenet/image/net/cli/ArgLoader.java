@@ -21,8 +21,8 @@ public class ArgLoader {
     public static Long time;
     @Argument(alias = "logLocation", description="Loaction of additional logfile", required = false)
     public static String logLocation;
-    @Argument(alias = "testMethod", description="Run specific test method", required = false)
-    public static Method testMethod;
+    @Argument(alias = "method", description="Run specific test method", required = true)
+    public static String method;
     @Argument(alias = "imageURI", description="Location of image for classification", required = false)
     public static String imageURI;
     @Argument(alias = "labelList", description = "List of labels", required = false, delimiter = ",")
