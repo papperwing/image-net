@@ -17,7 +17,7 @@ public class ArgLoader {
     public static ModelType model;
     @Argument(alias = "name", description="Name of stored model", required = true)
     public static String modelName;
-    @Argument(alias = "time", description="Time for computation (format: HH:MM:SS)", required = false)
+    @Argument(alias = "time", description="Time for computation in minutes", required = false)
     public static Long time;
     @Argument(alias = "logLocation", description="Loaction of additional logfile", required = false)
     public static String logLocation;
