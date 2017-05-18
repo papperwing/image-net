@@ -138,22 +138,22 @@ public class ImageNetRunner {
                     dataIter.setPreProcessor(TrainedModels.VGG16.getPreProcessor());
                     break;
             }
-            
+
             logger.debug("PreSaving dataset for faster processing");
             File saveFolder = new File(this.conf.getTempFolder());
             saveFolder.mkdirs();
             saveFolder.deleteOnExit();
             int dataSaved = 0;
-            while (dataIter.hasNext()){
+            while (dataIter.hasNext()) {
                 final org.nd4j.linalg.dataset.DataSet next = dataIter.next();
-                
+
                 logger.debug("" + dataSaved);
                 next.save(new File(saveFolder, saveDataName + dataSaved + ".bin"));
                 dataSaved++;
             }
             logger.debug("DataSet presaved");
-            
-            return new ExistingMiniBatchDataSetIterator(saveFolder,saveDataName+"%d.bin");
+
+            return new ExistingMiniBatchDataSetIterator(saveFolder, saveDataName + "%d.bin");
         } catch (IOException ex) {
             logger.error("Loading of image was not sucessfull.", ex);
         } catch (InterruptedException ex) {
@@ -196,7 +196,8 @@ public class ImageNetRunner {
         EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder()
                 .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
                 .modelSaver(new LocalFileGraphSaver(tempDirLoc))
-                .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true));
+                .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true))
+                .evaluateEveryNEpochs(1);
 
         if (this.conf.isTimed()) {
             builder.iterationTerminationConditions(new MaxTimeIterationTerminationCondition(this.conf.getTime(), TimeUnit.MINUTES));
@@ -204,7 +205,13 @@ public class ImageNetRunner {
         EarlyStoppingConfiguration<ComputationGraph> esConfig = builder.build();
         EarlyStoppingGraphTrainer trainer = new EarlyStoppingGraphTrainer(esConfig, model, trainDataSet);
 
-        return trainer.fit();
+        final EarlyStoppingResult<ComputationGraph> result = trainer.fit();
+        logger.info("Termination reason: " + result.getTerminationReason());
+        logger.info("Termination details: " + result.getTerminationDetails());
+        logger.info("Total epochs: " + result.getTotalEpochs());
+        logger.info("Best epoch number: " + result.getBestModelEpoch());
+        logger.info("Score at best epoch: " + result.getBestModelScore());
+        return result;
     }
 
     private void printDatasetStatistics(DataSet set) {

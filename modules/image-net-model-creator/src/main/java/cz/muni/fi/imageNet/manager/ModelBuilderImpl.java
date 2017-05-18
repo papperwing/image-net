@@ -75,9 +75,9 @@ public class ModelBuilderImpl implements ModelBuilder {
             //Construct a new model with the intended architecture and print summary
             ComputationGraph vgg16Transfer = new TransferLearning.GraphBuilder(vgg16)
                     .fineTuneConfiguration(fineTuneConf)
-                    .setFeatureExtractor("loss3/classifier") //the specified layer and below are "frozen"
-                    .removeVertexKeepConnections("prob") //replace the functionality of the final vertex
-                    .addLayer("prob",
+                    .setFeatureExtractor(featureExtractionLayer) //the specified layer and below are "frozen"
+                    .removeVertexKeepConnections("predictions") //replace the functionality of the final vertex
+                    .addLayer("predictions",
                             new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
                             .nIn(4096).nOut(numClasses)
                             .weightInit(WeightInit.DISTRIBUTION)

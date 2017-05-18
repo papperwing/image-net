@@ -106,6 +106,7 @@ public class ImageNetRecordReader
                 invokeListeners(imageFile);
                 INDArray row = imageLoader.asMatrix(imageFile);
                 ret = RecordConverter.toRecord(row);
+                System.gc();//asMatrix probably cause increase of memory usage
                 for (Label label : labelMap.get(imageFile.toURI())) {
                     final int indexOf = getLabels().indexOf(label.getLabelName());
                     final IntWritable intWritable = new IntWritable(indexOf);
