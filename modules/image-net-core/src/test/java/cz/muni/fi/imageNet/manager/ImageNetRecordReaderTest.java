@@ -5,20 +5,35 @@
  */
 package cz.muni.fi.imageNet.manager;
 
+import cz.muni.fi.imageNet.Pojo.Configuration;
 import cz.muni.fi.imageNet.Pojo.DataSample;
 import cz.muni.fi.imageNet.Pojo.DataSet;
 import cz.muni.fi.imageNet.Pojo.Label;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.datavec.image.loader.NativeImageLoader;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.mockito.InjectMocks;
+import static org.mockito.Matchers.any;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import org.mockito.MockitoAnnotations;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 
 /**
  *
@@ -39,17 +54,39 @@ public class ImageNetRecordReaderTest {
 
     @Before
     public void setUp() {
+        MockitoAnnotations.initMocks(this);
     }
 
     @After
     public void tearDown() {
     }
 
+    @InjectMocks
+    ImageNetRecordReader instance = new ImageNetRecordReader(0, 0, 0){
+
+        @Override
+        protected INDArray deserializeINDA(String key) throws FileNotFoundException, IOException, ClassNotFoundException {
+            return null;
+        }
+
+        @Override
+        protected File serializeINDA(INDArray array, String key) throws FileNotFoundException, IOException {
+            return null;
+        }
+        
+        
+        
+    };
+
+    @Mock
+    NativeImageLoader loader;
+
     /**
      * Test of getLabels method, of class ImageNetRecordReader.
      */
     @Test
-    public void testGetLabels() {
+    public void testGetLabels() throws Exception {
+
         System.out.println("getLabels");
         List<Label> labels = new ArrayList();
         Set<Label> labels1 = new HashSet();
@@ -75,22 +112,22 @@ public class ImageNetRecordReaderTest {
         expResult.add("test3");
         expResult.add("test4");
 
+        INDASerializer.conf = new Configuration();
+        when(loader.asMatrix(any(File.class))).thenReturn(null);
         DataSample sample2 = new DataSample("testLocation2", labels2);
         final ArrayList sampleList = new ArrayList();
         sampleList.add(sample1);
         sampleList.add(sample2);
 
         DataSet dataset = new DataSetDummy(sampleList, labels);
-
         ImageNetSplit split = new ImageNetSplit(dataset);
         split.initialize();
-        ImageNetRecordReader instance = new ImageNetRecordReader(0, 0, 0);
         try {
             instance.initialize(split);
             List<String> result = instance.getLabels();
             assertEquals(expResult, result);
         } catch (Exception ex) {
-            fail("Test failed on Exception");
+            fail("Test failed on Exception: " + ex.toString());
         }
     }
 
@@ -121,6 +158,11 @@ public class ImageNetRecordReaderTest {
 
         @Override
         public DataSet split(double percentage) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public Map<Label, Integer> getLabelDistribution() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     }

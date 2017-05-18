@@ -2,6 +2,7 @@ package cz.muni.fi.imageNet.Pojo;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -17,5 +18,8 @@ public interface DataSet {
     
     
     DataSet split(double percentage);
+    
+
+    Map<Label, Integer> getLabelDistribution();
     
 }

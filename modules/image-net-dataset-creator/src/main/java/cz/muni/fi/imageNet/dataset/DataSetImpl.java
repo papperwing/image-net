@@ -6,7 +6,9 @@ import cz.muni.fi.imageNet.Pojo.Label;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -50,16 +52,38 @@ public class DataSetImpl implements DataSet {
         }
         return Collections.unmodifiableList(new ArrayList(result));
     }
-    
-    public DataSet split(double splitPercentage){
-        if(splitPercentage < 0 || splitPercentage > 1) throw new IllegalArgumentException("Percentage must be between 0 and 1.");
-        int splitIndex = (int) Math.ceil(this.dataSetLenght*splitPercentage); 
-        
-        Collection<DataSample> splitList = new ArrayList(this.dataList).subList(splitIndex, dataSetLenght-1);
+
+    public DataSet split(double splitPercentage) {
+        validatePecentage(splitPercentage);
+        int splitIndex = (int) Math.ceil(this.dataSetLenght * splitPercentage);
+
+        Collection<DataSample> splitList = new ArrayList(this.dataList).subList(splitIndex, dataSetLenght - 1);
         dataList = new ArrayList(this.dataList).subList(0, splitIndex);
         DataSetImpl splitSet = new DataSetImpl(splitList, labels);
-    
+
         return splitSet;
     }
+
+    public Map<Label, Integer> getLabelDistribution() {
+        Map<Label, Integer> result = new HashMap();
+        for (Label label : getLabels()) {
+            result.put(label, new Integer(0));
+        }
+
+        for (DataSample sample : getData()) {
+            for (Label label : sample.getLabelSet()) {
+                result.put(label, result.get(label) + 1);
+            }
+        }
+        
+        return result;
+    }  
+    
+    private void validatePecentage(double splitPercentage) throws IllegalArgumentException {
+        if (splitPercentage < 0 || splitPercentage > 1) {
+            throw new IllegalArgumentException("Percentage must be between 0 and 1.");
+        }
+    }
+
 
 }

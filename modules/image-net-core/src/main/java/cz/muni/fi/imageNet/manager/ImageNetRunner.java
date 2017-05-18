@@ -8,7 +8,9 @@ import cz.muni.fi.imageNet.Pojo.NeuralNetModel;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
@@ -69,10 +71,17 @@ public class ImageNetRunner {
     public NeuralNetModel trainModel(final NeuralNetModel model, DataSet dataset, long startTime) {
 
         DataSet testSet = dataset.split(splitPercentage);
+        
+        /*get statistics of datasets after split*/
+        printDatasetStatistics(dataset);
+        printDatasetStatistics(testSet);
+        
         final DataSetIterator trainIterator = prepareDataSetIterator(dataset, model.getType());
 
         final DataSetIterator testIterator = prepareDataSetIterator(testSet, model.getType());
+        
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
+        
         EarlyStoppingResult<ComputationGraph> result = runEarlyStoppingTrain(
                 model.getModel(),
                 trainIterator,
@@ -93,7 +102,6 @@ public class ImageNetRunner {
     public List<List<Label>> classify(final NeuralNetModel model, String[] imageLocations) {
 
         try {
-            model.getModel().init();
             List<INDArray> images = new ArrayList<>();
             for (String imageLocation : imageLocations) {
                 images.add(generateINDArray(new File(imageLocation)));
@@ -112,6 +120,7 @@ public class ImageNetRunner {
 
     private DataSetIterator prepareDataSetIterator(DataSet dataset, ModelType modelType) {
         //it is necessarry to use ImageNetSplit to stay consist, because ImageNetRecordReader force to use ImageNetSplit
+        INDASerializer.conf = this.conf;
         ImageNetSplit is = new ImageNetSplit(dataset);
         ImageNetRecordReader recordReader = new ImageNetRecordReader(
                 height,
@@ -183,6 +192,37 @@ public class ImageNetRunner {
         EarlyStoppingGraphTrainer trainer = new EarlyStoppingGraphTrainer(esConfig, model, trainDataSet);
 
         return trainer.fit();
+    }
+
+    private void printDatasetStatistics(DataSet set) {
+        Map<Label, Integer> labelDistribution = set.getLabelDistribution();
+
+        StringBuilder statistic = new StringBuilder(System.lineSeparator());
+        int maxNameLength = 0;
+        int maxValueLenght = 0;
+        for (Label label : labelDistribution.keySet()) {
+            maxNameLength = Math.max(label.getLabelName().length(), maxNameLength);
+            maxValueLenght = Math.max(String.valueOf(labelDistribution.get(label)).length(), width);
+        }
+        
+        String pattern = "%-" + maxNameLength + 5 + "s%-" + maxValueLenght + "d";
+        
+        
+        for (Label label : labelDistribution.keySet()) {
+            statistic.append(
+                    String.format(
+                            pattern, 
+                            Arrays.<Object>asList(
+                                    label.getLabelName(), 
+                                    labelDistribution.get(label
+                                    )
+                            ) 
+                    )
+            );
+            statistic.append(System.lineSeparator());
+        }
+        
+        logger.info(statistic.toString());
     }
 
 }

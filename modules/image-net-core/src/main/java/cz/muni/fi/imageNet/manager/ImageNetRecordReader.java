@@ -3,9 +3,11 @@ package cz.muni.fi.imageNet.manager;
 import cz.muni.fi.imageNet.Pojo.Label;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +41,14 @@ public class ImageNetRecordReader
     protected int width;
     protected int channels = 1;
     protected ImageTransform imageTransform;
-    protected Iterator<File> iter;
-    protected File currentFile;
+    protected Iterator<String> iter;
+    protected String currentFile;
     protected BaseImageLoader imageLoader;
-    protected Map<URI, Set<Label>> labelMap;
+    protected Map<String, Set<Label>> labelMap;
     protected Set<Label> labels;
     protected InputSplit inputSplit;
     protected Configuration conf;
+    protected List<String> keyList;
 
     public ImageNetRecordReader(
             int height,
@@ -64,6 +67,10 @@ public class ImageNetRecordReader
         this.width = width;
         this.channels = channels;
         this.imageTransform = imageTransform;
+
+        if (imageLoader == null) {
+            imageLoader = new NativeImageLoader(height, width, channels, imageTransform);
+        }
     }
 
     public void initialize(Configuration conf, InputSplit split) throws IOException, InterruptedException {
@@ -71,50 +78,51 @@ public class ImageNetRecordReader
     }
 
     public void initialize(InputSplit split) throws IOException, InterruptedException {
-        initImageLoader();
         if (!(split instanceof ImageNetSplit)) {
             throw new UnsupportedOperationException("Not available to use ImageNetRecordReader with simple split.");
         }
         this.inputSplit = split;
         ImageNetSplit isplit = (ImageNetSplit) split;
-        this.labelMap = isplit.getLabelMap();
-
+        final Map<URI, Set<Label>> uriLabelMap = isplit.getLabelMap();
+        this.labelMap = new HashMap();
         URI[] locations = split.locations();
-        List<File> allFiles = new ArrayList();
+        int id = 0;
+        this.keyList = new ArrayList<>();
         for (URI location : locations) {
             File imgFile = new File(location);
-            allFiles.add(imgFile);
+            String key = String.valueOf(id);
+
+            INDArray row = imageLoader.asMatrix(imgFile);
+            serializeINDA(row, key);
+            keyList.add(key);
+            labelMap.put(key, uriLabelMap.get(location));
+            id++;
         }
         this.labels = new TreeSet(isplit.getDataSet().getLabels());
-        iter = allFiles.iterator();
 
-    }
+        iter = keyList.iterator();
 
-    private void initImageLoader() {
-        if (imageLoader == null) {
-            imageLoader = new NativeImageLoader(height, width, channels, imageTransform);
-        }
     }
 
     public List<Writable> next() {
         if (iter != null && iter.hasNext()) {
 
             List<Writable> ret = new ArrayList();
-            File image = iter.next();
-            currentFile = image;
+            String imageKey = iter.next();
+            currentFile = imageKey;
             try {
 
-                invokeListeners(image);
-                INDArray row = imageLoader.asMatrix(image);
+                invokeListeners(imageKey);
+                INDArray row = deserializeINDA(imageKey);
                 ret = RecordConverter.toRecord(row);
-                for (Label label : labelMap.get(image.toURI())) {
+                for (Label label : labelMap.get(imageKey)) {
                     final int indexOf = getLabels().indexOf(label.getLabelName());
                     final IntWritable intWritable = new IntWritable(indexOf);
                     ret.add(intWritable);
                 }
                 return ret;
-            } catch (IOException ex) {
-                logger.error("Loading of image " + image.toString() + " was not sucessfull.", ex);
+            } catch (IOException | ClassNotFoundException ex) {
+                logger.error("Loading of image " + imageKey + " was not sucessfull.", ex);
             }
         }
         throw new IllegalStateException("No more elements");
@@ -177,4 +185,11 @@ public class ImageNetRecordReader
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    protected File serializeINDA(INDArray array, String key) throws FileNotFoundException, IOException{
+        return INDASerializer.serializeINDA(array, key);
+    }
+
+    protected INDArray deserializeINDA(String key) throws FileNotFoundException, IOException, ClassNotFoundException{
+        return INDASerializer.deserializeINDA(key);
+    }
 }
