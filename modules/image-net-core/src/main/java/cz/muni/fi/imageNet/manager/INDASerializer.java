@@ -26,7 +26,15 @@ public class INDASerializer {
         if (INDASerializer.conf == null) {
             throw new IllegalStateException("configuration wasnt passed");
         }
-        final File file = new File(INDASerializer.conf.getTempFolder() + key + ".bin");
+        File tempDir = new File(INDASerializer.conf.getTempFolder());
+        if (!tempDir.exists()) {
+            tempDir.mkdirs();
+        }
+        tempDir.deleteOnExit();
+
+        final File file = new File(tempDir + File.separator + key + ".bin");
+        file.deleteOnExit();
+        
         try (FileOutputStream stream = new FileOutputStream(
                 file)) {
             try (ObjectOutputStream out = new ObjectOutputStream(stream)) {

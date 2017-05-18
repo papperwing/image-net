@@ -68,7 +68,7 @@ public class ImageNetAPI {
         logger.info("Prepared dataset.");
         StringBuilder labelString = new StringBuilder();
         for (Label label : dataSet.getLabels()) {
-            labelString.append(label.getLabelName());
+            labelString.append(label.getLabelName()).append(" ");
         }
         logger.debug(labelString.toString());
 

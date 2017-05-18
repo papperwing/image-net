@@ -71,17 +71,17 @@ public class ImageNetRunner {
     public NeuralNetModel trainModel(final NeuralNetModel model, DataSet dataset, long startTime) {
 
         DataSet testSet = dataset.split(splitPercentage);
-        
+
         /*get statistics of datasets after split*/
         printDatasetStatistics(dataset);
         printDatasetStatistics(testSet);
-        
+
         final DataSetIterator trainIterator = prepareDataSetIterator(dataset, model.getType());
 
         final DataSetIterator testIterator = prepareDataSetIterator(testSet, model.getType());
-        
+
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
-        
+
         EarlyStoppingResult<ComputationGraph> result = runEarlyStoppingTrain(
                 model.getModel(),
                 trainIterator,
@@ -202,26 +202,22 @@ public class ImageNetRunner {
         int maxValueLenght = 0;
         for (Label label : labelDistribution.keySet()) {
             maxNameLength = Math.max(label.getLabelName().length(), maxNameLength);
-            maxValueLenght = Math.max(String.valueOf(labelDistribution.get(label)).length(), width);
+            maxValueLenght = Math.max(String.valueOf(labelDistribution.get(label)).length(), maxValueLenght);
         }
-        
+
         String pattern = "%-" + maxNameLength + 5 + "s%-" + maxValueLenght + "d";
-        
-        
+
         for (Label label : labelDistribution.keySet()) {
             statistic.append(
                     String.format(
-                            pattern, 
-                            Arrays.<Object>asList(
-                                    label.getLabelName(), 
-                                    labelDistribution.get(label
-                                    )
-                            ) 
+                            pattern,
+                            label.getLabelName(),
+                            labelDistribution.get(label)
                     )
             );
             statistic.append(System.lineSeparator());
         }
-        
+
         logger.info(statistic.toString());
     }
 
