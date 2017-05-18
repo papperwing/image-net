@@ -8,7 +8,6 @@ import cz.muni.fi.imageNet.Pojo.NeuralNetModel;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +24,7 @@ import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.ExistingMiniBatchDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
@@ -76,9 +76,9 @@ public class ImageNetRunner {
         printDatasetStatistics(dataset);
         printDatasetStatistics(testSet);
 
-        final DataSetIterator trainIterator = prepareDataSetIterator(dataset, model.getType());
+        final DataSetIterator trainIterator = prepareDataSetIterator(dataset, model.getType(), "train");
 
-        final DataSetIterator testIterator = prepareDataSetIterator(testSet, model.getType());
+        final DataSetIterator testIterator = prepareDataSetIterator(testSet, model.getType(), "test");
 
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
 
@@ -118,9 +118,8 @@ public class ImageNetRunner {
         return null;
     }
 
-    private DataSetIterator prepareDataSetIterator(DataSet dataset, ModelType modelType) {
+    private DataSetIterator prepareDataSetIterator(DataSet dataset, ModelType modelType, String saveDataName) {
         //it is necessarry to use ImageNetSplit to stay consist, because ImageNetRecordReader force to use ImageNetSplit
-        INDASerializer.conf = this.conf;
         ImageNetSplit is = new ImageNetSplit(dataset);
         ImageNetRecordReader recordReader = new ImageNetRecordReader(
                 height,
@@ -139,8 +138,22 @@ public class ImageNetRunner {
                     dataIter.setPreProcessor(TrainedModels.VGG16.getPreProcessor());
                     break;
             }
-
-            return new AsyncDataSetIterator(dataIter, 3, true);
+            
+            logger.debug("PreSaving dataset for faster processing");
+            File saveFolder = new File(this.conf.getTempFolder());
+            saveFolder.mkdirs();
+            saveFolder.deleteOnExit();
+            int dataSaved = 0;
+            while (dataIter.hasNext()){
+                final org.nd4j.linalg.dataset.DataSet next = dataIter.next();
+                
+                logger.debug("" + dataSaved);
+                next.save(new File(saveFolder, saveDataName + dataSaved + ".bin"));
+                dataSaved++;
+            }
+            logger.debug("DataSet presaved");
+            
+            return new ExistingMiniBatchDataSetIterator(saveFolder,saveDataName+"%d.bin");
         } catch (IOException ex) {
             logger.error("Loading of image was not sucessfull.", ex);
         } catch (InterruptedException ex) {

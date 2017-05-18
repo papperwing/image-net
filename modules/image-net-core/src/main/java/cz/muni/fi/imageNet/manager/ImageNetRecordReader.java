@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -41,14 +40,14 @@ public class ImageNetRecordReader
     protected int width;
     protected int channels = 1;
     protected ImageTransform imageTransform;
-    protected Iterator<String> iter;
-    protected String currentFile;
+    protected Iterator<File> iter;
+    protected File currentFile;
     protected BaseImageLoader imageLoader;
-    protected Map<String, Set<Label>> labelMap;
+    protected Map<URI, Set<Label>> labelMap;
     protected Set<Label> labels;
     protected InputSplit inputSplit;
     protected Configuration conf;
-    protected List<String> keyList;
+    protected List<File> allFiles;
 
     public ImageNetRecordReader(
             int height,
@@ -83,46 +82,38 @@ public class ImageNetRecordReader
         }
         this.inputSplit = split;
         ImageNetSplit isplit = (ImageNetSplit) split;
-        final Map<URI, Set<Label>> uriLabelMap = isplit.getLabelMap();
-        this.labelMap = new HashMap();
+        this.labelMap = isplit.getLabelMap();
+        
         URI[] locations = split.locations();
-        int id = 0;
-        this.keyList = new ArrayList<>();
+        this.allFiles = new ArrayList<>();
         for (URI location : locations) {
             File imgFile = new File(location);
-            String key = String.valueOf(id);
-
-            INDArray row = imageLoader.asMatrix(imgFile);
-            serializeINDA(row, key);
-            keyList.add(key);
-            labelMap.put(key, uriLabelMap.get(location));
-            id++;
+            allFiles.add(imgFile);
         }
         this.labels = new TreeSet(isplit.getDataSet().getLabels());
 
-        iter = keyList.iterator();
+        iter = allFiles.iterator();
 
     }
 
     public List<Writable> next() {
         if (iter != null && iter.hasNext()) {
-
+        
             List<Writable> ret = new ArrayList();
-            String imageKey = iter.next();
-            currentFile = imageKey;
+            File imageFile = iter.next();;
+            currentFile = imageFile;
             try {
-
-                invokeListeners(imageKey);
-                INDArray row = deserializeINDA(imageKey);
+                invokeListeners(imageFile);
+                INDArray row = imageLoader.asMatrix(imageFile);
                 ret = RecordConverter.toRecord(row);
-                for (Label label : labelMap.get(imageKey)) {
+                for (Label label : labelMap.get(imageFile.toURI())) {
                     final int indexOf = getLabels().indexOf(label.getLabelName());
                     final IntWritable intWritable = new IntWritable(indexOf);
                     ret.add(intWritable);
                 }
                 return ret;
-            } catch (IOException | ClassNotFoundException ex) {
-                logger.error("Loading of image " + imageKey + " was not sucessfull.", ex);
+            } catch (IOException ex) {
+                logger.error("Loading of image " + imageFile.toString() + " was not sucessfull.", ex);
             }
         }
         throw new IllegalStateException("No more elements");
@@ -183,13 +174,5 @@ public class ImageNetRecordReader
 
     public List<Record> loadFromMetaData(List<RecordMetaData> recordMetaDatas) throws IOException {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    protected File serializeINDA(INDArray array, String key) throws FileNotFoundException, IOException{
-        return INDASerializer.serializeINDA(array, key);
-    }
-
-    protected INDArray deserializeINDA(String key) throws FileNotFoundException, IOException, ClassNotFoundException{
-        return INDASerializer.deserializeINDA(key);
     }
 }

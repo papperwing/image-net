@@ -6,5 +6,6 @@ package cz.muni.fi.imageNet.Pojo;
  */
 public enum ModelType {
     VGG16,
-    RESNET150
+    RESNET50,
+    LENET
 }

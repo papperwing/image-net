@@ -54,32 +54,13 @@ public class ImageNetRecordReaderTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
     }
 
     @After
     public void tearDown() {
     }
 
-    @InjectMocks
-    ImageNetRecordReader instance = new ImageNetRecordReader(0, 0, 0){
-
-        @Override
-        protected INDArray deserializeINDA(String key) throws FileNotFoundException, IOException, ClassNotFoundException {
-            return null;
-        }
-
-        @Override
-        protected File serializeINDA(INDArray array, String key) throws FileNotFoundException, IOException {
-            return null;
-        }
-        
-        
-        
-    };
-
-    @Mock
-    NativeImageLoader loader;
+    ImageNetRecordReader instance = new ImageNetRecordReader(0, 0, 0);
 
     /**
      * Test of getLabels method, of class ImageNetRecordReader.
@@ -111,9 +92,7 @@ public class ImageNetRecordReaderTest {
         expResult.add("test2");
         expResult.add("test3");
         expResult.add("test4");
-
-        INDASerializer.conf = new Configuration();
-        when(loader.asMatrix(any(File.class))).thenReturn(null);
+        
         DataSample sample2 = new DataSample("testLocation2", labels2);
         final ArrayList sampleList = new ArrayList();
         sampleList.add(sample1);
