@@ -46,9 +46,9 @@ public class ModelBuilderImpl implements ModelBuilder {
             case VGG16:
                 return createVggModel(dataSet);
             case LENET:
-                return createLeNetModel(dataSet);
+                throw new UnsupportedOperationException("Loading of keras Lenet is not available yet");
             case RESNET50:
-                return createResnet50(dataSet);
+                throw new UnsupportedOperationException("Loading of keras resnet is not available yet");
         }
         throw new IllegalArgumentException("Unsuported model type selected.");
     }

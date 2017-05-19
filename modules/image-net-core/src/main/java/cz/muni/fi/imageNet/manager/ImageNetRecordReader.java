@@ -24,6 +24,8 @@ import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.transform.ImageTransform;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
+import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +85,7 @@ public class ImageNetRecordReader
         this.inputSplit = split;
         ImageNetSplit isplit = (ImageNetSplit) split;
         this.labelMap = isplit.getLabelMap();
-        
+
         URI[] locations = split.locations();
         this.allFiles = new ArrayList<>();
         for (URI location : locations) {
@@ -98,13 +100,17 @@ public class ImageNetRecordReader
 
     public List<Writable> next() {
         if (iter != null && iter.hasNext()) {
-        
+
             List<Writable> ret = new ArrayList();
             File imageFile = iter.next();;
             currentFile = imageFile;
             try {
                 invokeListeners(imageFile);
                 INDArray row = imageLoader.asMatrix(imageFile);
+
+                DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
+                scaler.transform(row);
+                
                 ret = RecordConverter.toRecord(row);
                 System.gc();//asMatrix probably cause increase of memory usage
                 for (Label label : labelMap.get(imageFile.toURI())) {

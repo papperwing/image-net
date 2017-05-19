@@ -47,6 +47,10 @@ public class App {
             config.setTimed(true);
             config.setTime(ArgLoader.time);
         }
+        
+        if(ArgLoader.learningRate != null){
+            config.setLearningRate(ArgLoader.learningRate);
+        }
 
         ImageNetAPI api = new ImageNetAPI(config);
 

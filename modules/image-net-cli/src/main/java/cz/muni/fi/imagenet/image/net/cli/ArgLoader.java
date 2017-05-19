@@ -29,4 +29,6 @@ public class ArgLoader {
     public static String[] labelList;
     @Argument(alias = "modelLoc", description="Trained model location", required = false)
     public static String modelLoc;
+    @Argument(alias = "learningRate", description="learningRate", required = false)
+    public static Double learningRate;
 }

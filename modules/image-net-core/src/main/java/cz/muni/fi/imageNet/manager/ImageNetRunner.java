@@ -24,8 +24,9 @@ import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
-import org.deeplearning4j.ui.stats.StatsListener;
-import org.deeplearning4j.ui.storage.FileStatsStorage;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.ui.stats.J7StatsListener;
+import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.ExistingMiniBatchDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -50,7 +51,7 @@ public class ImageNetRunner {
     private final int width = 224;
     private final int channels = 3;
 
-    private final int batchSize = 5;
+    private final int batchSize = 32;
     private final double treshold = 0.5;
     private final double splitPercentage = 0.8;
 
@@ -246,9 +247,10 @@ public class ImageNetRunner {
 
     private void setupStatInterface(Model model) {
 
-        StatsStorage store = new FileStatsStorage(new File(this.conf.getImageDownloadFolder() + "/../storage_file"));
+        StatsStorage store = new J7FileStatsStorage(new File(this.conf.getImageDownloadFolder() + "/../storage_file"));
 
-        model.setListeners(new StatsListener(store));
+        model.setListeners(new J7StatsListener(store));
+        model.setListeners(new ScoreIterationListener(1));
 
     }
 
