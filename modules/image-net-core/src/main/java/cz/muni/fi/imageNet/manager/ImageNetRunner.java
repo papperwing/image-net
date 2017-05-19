@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.datavec.image.loader.NativeImageLoader;
+import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
-import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.saver.LocalFileGraphSaver;
@@ -21,8 +21,11 @@ import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculatorCG;
 import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationCondition;
 import org.deeplearning4j.earlystopping.termination.MaxTimeIterationTerminationCondition;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
+import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
+import org.deeplearning4j.ui.stats.StatsListener;
+import org.deeplearning4j.ui.storage.FileStatsStorage;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.ExistingMiniBatchDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -81,7 +84,7 @@ public class ImageNetRunner {
         final DataSetIterator testIterator = prepareDataSetIterator(testSet, model.getType(), "test");
 
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
-
+        setupStatInterface(model.getModel());
         EarlyStoppingResult<ComputationGraph> result = runEarlyStoppingTrain(
                 model.getModel(),
                 trainIterator,
@@ -239,6 +242,14 @@ public class ImageNetRunner {
         }
 
         logger.info(statistic.toString());
+    }
+
+    private void setupStatInterface(Model model) {
+
+        StatsStorage store = new FileStatsStorage(new File(this.conf.getImageDownloadFolder() + "/../storage_file"));
+
+        model.setListeners(new StatsListener(store));
+
     }
 
 }
