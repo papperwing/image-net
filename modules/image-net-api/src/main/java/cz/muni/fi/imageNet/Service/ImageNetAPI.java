@@ -4,7 +4,7 @@ import cz.muni.fi.imageNet.Pojo.Configuration;
 import cz.muni.fi.imageNet.Pojo.DataImage;
 import cz.muni.fi.imageNet.Pojo.DataSample;
 import cz.muni.fi.imageNet.POJO.DataSampleDTO;
-import cz.muni.fi.imageNet.dataset.DataSetImpl;
+import cz.muni.fi.imageNet.Pojo.DataSet;
 import cz.muni.fi.imageNet.Pojo.DownloadResult;
 import cz.muni.fi.imageNet.Pojo.Label;
 import cz.muni.fi.imageNet.Pojo.ModelType;
@@ -61,16 +61,12 @@ public class ImageNetAPI {
 
         logger.info("Process initialized.");
 
-        DataSetImpl dataSet = datasetBuilder.buildDataSet(
+        DataSet dataSet = datasetBuilder.buildDataSet(
                 getDataSampleCollection(dataSamples),
                 getDataSampleLabels(dataSamples)
         );
         logger.info("Prepared dataset.");
-        StringBuilder labelString = new StringBuilder();
-        for (Label label : dataSet.getLabels()) {
-            labelString.append(label.getLabelName()).append(" ");
-        }
-        logger.debug(labelString.toString());
+        logger.debug(dataSet.getLabels().toString());
 
         NeuralNetModel model = modelBuilder.createModel(
                 modelType,
@@ -86,6 +82,29 @@ public class ImageNetAPI {
         logger.info("Trained model.");
 
         return model.toFile(modelName);
+    }
+
+    public String evaluateModel(File modelLoc, DataSampleDTO[] dataSamples, List<String> classNames, ModelType modelType) throws IOException {
+
+        final DataSetBuilder datasetBuilder = new DataSetBuilderImpl(config);
+
+        final ImageNetRunner runner = new ImageNetRunner(config);
+
+        List<Label> labels = new ArrayList();
+        for (String name : classNames) {
+            labels.add(new Label(name));
+        }
+
+        NeuralNetModel model = new NeuralNetModel(
+                modelLoc,
+                labels,
+                modelType
+        );
+        
+        final Collection<DataSample> dataSampleCollection = getDataSampleCollection(dataSamples);
+        
+        DataSet dataset = datasetBuilder.buildDataSet(dataSampleCollection, labels);
+        return runner.evaluateModel(model, dataset);
     }
 
     private Collection<DataSample> getDataSampleCollection(DataSampleDTO[] dataSamples) {
@@ -134,7 +153,7 @@ public class ImageNetAPI {
         }
         return new UrlImage(dataSample.getUrl(), labels);
     }
-
+    
     public List<List<String>> classify(String modelLoc, List<String> labelNameList, String... imageURI) throws IOException {
         final ImageNetRunner runner = new ImageNetRunner(config);
         List<Label> labelList = new ArrayList<Label>();
@@ -158,5 +177,6 @@ public class ImageNetAPI {
         }
         return results;
     }
+
 
 }

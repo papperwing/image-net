@@ -8,10 +8,17 @@ import cz.muni.fi.imageNet.Pojo.NeuralNetModel;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.datavec.api.berkeley.Pair;
 import org.datavec.image.loader.NativeImageLoader;
+import org.datavec.image.transform.FlipImageTransform;
+import org.datavec.image.transform.ImageTransform;
+import org.datavec.image.transform.PipelineImageTransform;
+import org.datavec.image.transform.RandomCropTransform;
+import org.datavec.image.transform.ResizeImageTransform;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
@@ -21,9 +28,11 @@ import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculatorCG;
 import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationCondition;
 import org.deeplearning4j.earlystopping.termination.MaxTimeIterationTerminationCondition;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
+import org.deeplearning4j.eval.EvaluationBinary;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.stats.J7StatsListener;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
@@ -33,6 +42,7 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.heartbeat.reports.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +100,7 @@ public class ImageNetRunner {
                 model.getModel(),
                 trainIterator,
                 testIterator,
-                this.conf.getTempFolder()
+                this.conf.getTempFolder() + File.separator + "model"
         );
 
         return new NeuralNetModel(result.getBestModel(), dataset.getLabels(), ModelType.VGG16);
@@ -125,10 +135,18 @@ public class ImageNetRunner {
     private DataSetIterator prepareDataSetIterator(DataSet dataset, ModelType modelType, String saveDataName) {
         //it is necessarry to use ImageNetSplit to stay consist, because ImageNetRecordReader force to use ImageNetSplit
         ImageNetSplit is = new ImageNetSplit(dataset);
+
+        List<Pair<ImageTransform, Double>> pipeline = new LinkedList<>();
+        pipeline.add(new Pair(new ResizeImageTransform(300, 300), 1.0));
+        pipeline.add(new Pair(new RandomCropTransform(224, 224), 1.0));
+        pipeline.add(new Pair(new FlipImageTransform(1), 0.5));
+        ImageTransform combinedTransform = new PipelineImageTransform(pipeline, false);
+
         ImageNetRecordReader recordReader = new ImageNetRecordReader(
                 height,
                 width,
-                channels
+                channels,
+                combinedTransform
         );
         try {
             logger.debug("Record reader inicialization.");
@@ -144,7 +162,7 @@ public class ImageNetRunner {
             }
 
             logger.debug("PreSaving dataset for faster processing");
-            File saveFolder = new File(this.conf.getTempFolder());
+            File saveFolder = new File(this.conf.getTempFolder() + File.separator + "minibatches" + File.separator + saveDataName);
             saveFolder.mkdirs();
             saveFolder.deleteOnExit();
             int dataSaved = 0;
@@ -152,12 +170,12 @@ public class ImageNetRunner {
                 final org.nd4j.linalg.dataset.DataSet next = dataIter.next();
 
                 logger.debug("" + dataSaved);
-                next.save(new File(saveFolder, saveDataName + dataSaved + ".bin"));
+                next.save(new File(saveFolder, saveDataName + "-" + dataSaved + ".bin"));
                 dataSaved++;
             }
             logger.debug("DataSet presaved");
 
-            return new ExistingMiniBatchDataSetIterator(saveFolder, saveDataName + "%d.bin");
+            return new ExistingMiniBatchDataSetIterator(saveFolder, saveDataName + "-%d.bin");
         } catch (IOException ex) {
             logger.error("Loading of image was not sucessfull.", ex);
         } catch (InterruptedException ex) {
@@ -252,6 +270,14 @@ public class ImageNetRunner {
         model.setListeners(new J7StatsListener(store));
         model.setListeners(new ScoreIterationListener(1));
 
+    }
+
+    public String evaluateModel(NeuralNetModel model, DataSet set) {
+        DataSetIterator iter = prepareDataSetIterator(set, ModelType.LENET, "evaluation");
+
+        final EvaluationBinary evaluationBinary = new EvaluationBinary(set.getLabels().size(), null);
+        model.getModel().doEvaluation(iter, evaluationBinary);
+        return evaluationBinary.stats();
     }
 
 }

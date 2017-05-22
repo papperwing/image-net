@@ -13,7 +13,7 @@
         <module>modules/image-net-core</module>
         <module>modules/image-net-model-creator</module>
         <module>modules/image-net-image-downloader</module>
-        <module>modules/image-net-dovolena-api</module>
+        <module>modules/image-net-api</module>
         <module>modules/image-net-cli</module>
         <module>modules/image-net-dataset-creator</module>
     </modules>

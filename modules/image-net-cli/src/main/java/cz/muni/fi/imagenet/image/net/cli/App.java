@@ -15,6 +15,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sampullara.cli.Args;
+import cz.muni.fi.imageNet.Pojo.NeuralNetModel;
 
 /**
  *
@@ -47,8 +48,8 @@ public class App {
             config.setTimed(true);
             config.setTime(ArgLoader.time);
         }
-        
-        if(ArgLoader.learningRate != null){
+
+        if (ArgLoader.learningRate != null) {
             config.setLearningRate(ArgLoader.learningRate);
         }
 
@@ -90,7 +91,7 @@ public class App {
 
                 List<String> labelNameList = new ArrayList();
                 for (String labelName : ArgLoader.labelList) {
-                    labelNameList.add(imageURI);
+                    labelNameList.add(labelName);
                 }
                 final List<List<String>> classify = api.classify(modelLocation, labelNameList, imageURI);
                 for (List<String> result : classify) {
@@ -98,43 +99,44 @@ public class App {
                 }
 
                 break;
+            case "EVALUATE":
+                File datasetFile1 = new File(ArgLoader.datasetLoc);
+                if (!datasetFile1.isFile() || !datasetFile1.canRead()) {
+                    throw new IllegalArgumentException("There is wrong path to dataset file.");
+                }
+
+                String modelLocation1 = ArgLoader.modelLoc;
+
+                List<String> labelNameList1 = new ArrayList();
+                for (String labelName : ArgLoader.labelList) {
+                    labelNameList1.add(labelName);
+                }
+
+                List<DataSampleDTO> datasetList1 = new ArrayList();
+
+                try (final BufferedReader fileReader = new BufferedReader(new FileReader(datasetFile1))) {
+                    String line = fileReader.readLine();
+                    while (line != null) {
+
+                        DataSampleDTO sample = new DataSampleDTO(line);
+                        datasetList1.add(sample);
+                        line = fileReader.readLine();
+                    }
+                }
+
+                DataSampleDTO[] dataset1 = new DataSampleDTO[datasetList1.size()];
+                dataset1 = datasetList1.toArray(dataset1);
+                final String evaluate = api.evaluateModel(
+                        new File(modelLocation1), 
+                        dataset1, 
+                        labelNameList1,
+                        ArgLoader.model != null ? ArgLoader.model : ModelType.VGG16);
+                logger.info(evaluate);
+                break;
             default:
 
         }
         logger.info("Finnished");
-    }
-
-    private static Logger setupLogBack(ch.qos.logback.classic.Logger logbackLogger) {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-
-        FileAppender fileAppender = new FileAppender();
-        fileAppender.setContext(loggerContext);
-        fileAppender.setName("timestamp");
-        // set the file name
-        fileAppender.setFile(ArgLoader.logLocation + "log/" + System.currentTimeMillis() + ".log");
-
-        PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-        encoder.setContext(loggerContext);
-        encoder.setPattern("%r %thread %level - %msg%n");
-        encoder.start();
-
-        fileAppender.setEncoder(encoder);
-        fileAppender.start();
-
-        // attach the rolling file appender to the logger of your choice
-        logbackLogger.addAppender(fileAppender);
-        return logbackLogger;
-    }
-
-    private static void setCustomUncaughtExceptionHandler() {
-        // Making sure that if one thread crashes,
-        // then the whole JVM will shut down.
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread t, Throwable e) {
-                System.out.println(t + " throws exception: " + e);
-                System.exit(1);
-            }
-        });
     }
 
 }

@@ -23,7 +23,7 @@
         </dependency>
         <dependency>
             <groupId>cz.muni.fi.image-net</groupId>
-            <artifactId>image-net-dovolena-api</artifactId>
+            <artifactId>image-net-api</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>

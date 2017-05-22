@@ -9,19 +9,19 @@ import cz.muni.fi.imageNet.Pojo.ModelType;
  */
 public class ArgLoader {
     
-    @Argument(alias = "dataset", description="Location of csv", required = true)
+    @Argument(alias = "dataset", description="Location of csv", required = false)
     public static String datasetLoc;
     @Argument(alias = "imageLoc", description="Location of downloaded images", required = false)
     public static String imageLoc;
     @Argument(alias = "type", description="Type of model for transfer learning", required = false)
     public static ModelType model;
-    @Argument(alias = "name", description="Name of stored model", required = true)
+    @Argument(alias = "name", description="Name of stored model", required = false)
     public static String modelName;
     @Argument(alias = "time", description="Time for computation in minutes", required = false)
     public static Long time;
     @Argument(alias = "logLocation", description="Loaction of additional logfile", required = false)
     public static String logLocation;
-    @Argument(alias = "method", description="Run specific test method", required = true)
+    @Argument(alias = "method", description="Run specific test method", required = false)
     public static String method;
     @Argument(alias = "imageURI", description="Location of image for classification", required = false)
     public static String imageURI;
