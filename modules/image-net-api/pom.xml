@@ -36,5 +36,10 @@
             <artifactId>image-net-image-downloader</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>3.8</version>
+        </dependency>
     </dependencies>
 </project>

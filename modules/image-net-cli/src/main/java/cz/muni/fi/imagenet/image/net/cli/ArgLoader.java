@@ -1,7 +1,7 @@
 package cz.muni.fi.imagenet.image.net.cli;
 
 import com.sampullara.cli.Argument;
-import cz.muni.fi.imageNet.Pojo.ModelType;
+import cz.muni.fi.imageNet.core.objects.ModelType;
 
 /**
  * CLI-Parser class for parsing arguments
