@@ -21,6 +21,7 @@ import org.datavec.image.transform.RandomCropTransform;
 import org.datavec.image.transform.ResizeImageTransform;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.saver.LocalFileGraphSaver;
@@ -149,10 +150,10 @@ public class ImageNetRunner {
         try {
             logger.debug("Record reader inicialization.");
             recordReader.initialize(is);
-            DataSetIterator dataIter = new RecordReaderDataSetIterator(
+            DataSetIterator dataIter = new AsyncDataSetIterator(new RecordReaderDataSetIterator(
                     recordReader,
                     batchSize
-            );
+            ));
             switch (modelType) {
                 case VGG16:
                     dataIter.setPreProcessor(TrainedModels.VGG16.getPreProcessor());
