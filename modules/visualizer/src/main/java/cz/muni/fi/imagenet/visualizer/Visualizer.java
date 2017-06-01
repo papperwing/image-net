@@ -10,7 +10,7 @@ import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
  * @author jpeschel
  */
 public class Visualizer {
-    
+
     public static void main(String[] args) {
         UIServer uiServer = UIServer.getInstance();
         File storageFile = new File("./storage_file");

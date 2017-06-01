@@ -78,12 +78,14 @@ public class ImageNetRunner {
      *
      * @param model
      * @param dataset
-     * @param startTime
      * @return
      */
-    public NeuralNetModel trainModel(final NeuralNetModel model, DataSet dataset, long startTime) {
+    public NeuralNetModel trainModel(
+            final NeuralNetModel model,
+            final DataSet dataset
+    ) {
 
-        DataSet testSet = dataset.split(splitPercentage);
+        final DataSet testSet = dataset.split(splitPercentage);
 
         /*get statistics of datasets after split*/
         printDatasetStatistics(dataset);
@@ -95,7 +97,7 @@ public class ImageNetRunner {
 
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
         setupStatInterface(model.getModel());
-        EarlyStoppingResult<ComputationGraph> result = runEarlyStoppingTrain(
+        final EarlyStoppingResult<ComputationGraph> result = runEarlyStoppingTrain(
                 model.getModel(),
                 trainIterator,
                 testIterator,
@@ -109,18 +111,18 @@ public class ImageNetRunner {
      *
      *
      * @param model
-     * @param imageLocation
+     * @param imageLocations
      * @return
      */
-    public List<List<Label>> classify(final NeuralNetModel model, String[] imageLocations) {
+    public List<List<Label>> classify(final NeuralNetModel model, final String[] imageLocations) {
 
         try {
-            List<INDArray> images = new ArrayList<>();
-            for (String imageLocation : imageLocations) {
+            final List<INDArray> images = new ArrayList<>();
+            for (final String imageLocation : imageLocations) {
                 images.add(generateINDArray(new File(imageLocation)));
             }
 
-            INDArray[] imageFeatures = images.toArray(new INDArray[images.size()]);
+            final INDArray[] imageFeatures = images.toArray(new INDArray[images.size()]);
             return getLabel(
                     new ArrayList(model.getLabels()),
                     model.getModel().output(imageFeatures)
@@ -131,17 +133,21 @@ public class ImageNetRunner {
         return null;
     }
 
-    private DataSetIterator prepareDataSetIterator(DataSet dataset, ModelType modelType, String saveDataName) {
+    private DataSetIterator prepareDataSetIterator(
+            final DataSet dataset,
+            final ModelType modelType,
+            final String saveDataName
+    ) {
         //it is necessarry to use ImageNetSplit to stay consist, because ImageNetRecordReader force to use ImageNetSplit
-        ImageNetSplit is = new ImageNetSplit(dataset);
+        final ImageNetSplit is = new ImageNetSplit(dataset);
 
-        List<Pair<ImageTransform, Double>> pipeline = new LinkedList<>();
+        final List<Pair<ImageTransform, Double>> pipeline = new LinkedList<>();
         pipeline.add(new Pair(new ResizeImageTransform(300, 300), 1.0));
         pipeline.add(new Pair(new RandomCropTransform(224, 224), 1.0));
         pipeline.add(new Pair(new FlipImageTransform(1), 0.5));
-        ImageTransform combinedTransform = new PipelineImageTransform(pipeline, false);
+        final ImageTransform combinedTransform = new PipelineImageTransform(pipeline, false);
 
-        ImageNetRecordReader recordReader = new ImageNetRecordReader(
+        final ImageNetRecordReader recordReader = new ImageNetRecordReader(
                 height,
                 width,
                 channels,
@@ -150,10 +156,19 @@ public class ImageNetRunner {
         try {
             logger.debug("Record reader inicialization.");
             recordReader.initialize(is);
-            DataSetIterator dataIter = new AsyncDataSetIterator(new RecordReaderDataSetIterator(
-                    recordReader,
-                    batchSize
-            ));
+            
+            //TODO: this dataset is set specificaly for binary multi-label problem. Has to be generalized.
+            final DataSetIterator dataIter
+                    = new AsyncDataSetIterator(
+                            new RecordReaderDataSetIterator(
+                                    recordReader,
+                                    batchSize,
+                                    1,
+                                    dataset.getLabels().size(),
+                                    true
+                            )
+                    );
+
             switch (modelType) {
                 case VGG16:
                     dataIter.setPreProcessor(TrainedModels.VGG16.getPreProcessor());
@@ -161,7 +176,7 @@ public class ImageNetRunner {
             }
 
             logger.debug("PreSaving dataset for faster processing");
-            File saveFolder = new File(this.conf.getTempFolder() + File.separator + "minibatches" + File.separator + saveDataName);
+            final File saveFolder = new File(this.conf.getTempFolder() + File.separator + "minibatches" + File.separator + saveDataName);
             saveFolder.mkdirs();
             saveFolder.deleteOnExit();
             int dataSaved = 0;
@@ -184,12 +199,12 @@ public class ImageNetRunner {
         return null;
     }
 
-    private List<List<Label>> getLabel(List<Label> labels, INDArray... outputs) {
+    private List<List<Label>> getLabel(final List<Label> labels, final INDArray... outputs) {
         //TODO: Vylepšit na iterování skrze INDArray
-        List<List<Label>> results = new ArrayList();
+        final List<List<Label>> results = new ArrayList();
         for (INDArray output : outputs) {
-            List<Label> result = new ArrayList();
-            double[] asDouble = output.dup().data().asDouble();
+            final List<Label> result = new ArrayList();
+            final double[] asDouble = output.dup().data().asDouble();
             for (int i = 0; i < asDouble.length; i++) {
                 if (asDouble[i] > treshold) {
                     result.add(labels.get(i));
@@ -200,21 +215,21 @@ public class ImageNetRunner {
         return results;
     }
 
-    private INDArray generateINDArray(File image) throws IOException {
-        NativeImageLoader loader = new NativeImageLoader(height, width, channels);
-        INDArray imageVector = loader.asMatrix(image);
-        DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
+    private INDArray generateINDArray(final File image) throws IOException {
+        final NativeImageLoader loader = new NativeImageLoader(height, width, channels);
+        final INDArray imageVector = loader.asMatrix(image);
+        final DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
         scaler.transform(imageVector);
         return imageVector;
     }
 
     private EarlyStoppingResult runEarlyStoppingTrain(
-            ComputationGraph model,
-            DataSetIterator trainDataSet,
-            DataSetIterator testDataSet,
-            String tempDirLoc
+            final ComputationGraph model,
+            final DataSetIterator trainDataSet,
+            final DataSetIterator testDataSet,
+            final String tempDirLoc
     ) {
-        EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder()
+        final EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder()
                 .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
                 .modelSaver(new LocalFileGraphSaver(tempDirLoc))
                 .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true))
@@ -223,8 +238,8 @@ public class ImageNetRunner {
         if (this.conf.isTimed()) {
             builder.iterationTerminationConditions(new MaxTimeIterationTerminationCondition(this.conf.getTime(), TimeUnit.MINUTES));
         }
-        EarlyStoppingConfiguration<ComputationGraph> esConfig = builder.build();
-        EarlyStoppingGraphTrainer trainer = new EarlyStoppingGraphTrainer(esConfig, model, trainDataSet);
+        final EarlyStoppingConfiguration<ComputationGraph> esConfig = builder.build();
+        final EarlyStoppingGraphTrainer trainer = new EarlyStoppingGraphTrainer(esConfig, model, trainDataSet);
 
         final EarlyStoppingResult<ComputationGraph> result = trainer.fit();
         logger.info("Termination reason: " + result.getTerminationReason());
@@ -232,23 +247,24 @@ public class ImageNetRunner {
         logger.info("Total epochs: " + result.getTotalEpochs());
         logger.info("Best epoch number: " + result.getBestModelEpoch());
         logger.info("Score at best epoch: " + result.getBestModelScore());
+
         return result;
     }
 
-    private void printDatasetStatistics(DataSet set) {
-        Map<Label, Integer> labelDistribution = set.getLabelDistribution();
+    private void printDatasetStatistics(final DataSet set) {
+        final Map<Label, Integer> labelDistribution = set.getLabelDistribution();
 
-        StringBuilder statistic = new StringBuilder(System.lineSeparator());
+        final StringBuilder statistic = new StringBuilder(System.lineSeparator());
         int maxNameLength = 0;
         int maxValueLenght = 0;
-        for (Label label : labelDistribution.keySet()) {
+        for (final Label label : labelDistribution.keySet()) {
             maxNameLength = Math.max(label.getLabelName().length(), maxNameLength);
             maxValueLenght = Math.max(String.valueOf(labelDistribution.get(label)).length(), maxValueLenght);
         }
 
         String pattern = "%-" + maxNameLength + 5 + "s%-" + maxValueLenght + "d";
 
-        for (Label label : labelDistribution.keySet()) {
+        for (final Label label : labelDistribution.keySet()) {
             statistic.append(
                     String.format(
                             pattern,
@@ -266,8 +282,7 @@ public class ImageNetRunner {
 
         StatsStorage store = new J7FileStatsStorage(new File(this.conf.getImageDownloadFolder() + "/../storage_file"));
 
-        model.setListeners(new J7StatsListener(store));
-        model.setListeners(new ScoreIterationListener(1));
+        model.setListeners(new J7StatsListener(store), new ScoreIterationListener(1));
 
     }
 

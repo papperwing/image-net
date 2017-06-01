@@ -31,4 +31,8 @@ public class ArgLoader {
     public static String modelLoc;
     @Argument(alias = "learningRate", description="learningRate", required = false)
     public static Double learningRate;
+    @Argument(alias = "epochCount", description="amount of epochs", required = false)
+    public static Integer epochCount;
+    @Argument(alias = "tempLoc", description="Temp location", required = false)
+    public static String tempLoc;
 }

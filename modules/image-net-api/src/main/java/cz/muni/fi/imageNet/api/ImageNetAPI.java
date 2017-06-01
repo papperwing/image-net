@@ -80,8 +80,7 @@ public class ImageNetAPI {
 
         runner.trainModel(
                 model,
-                dataSet,
-                startTime
+                dataSet
         );
         logger.info("Trained model.");
 
@@ -94,7 +93,7 @@ public class ImageNetAPI {
         final DataSetBuilder datasetBuilder = new DataSetBuilderImpl(config);
         final ImageNetRunner runner = new ImageNetRunner(config);
         final DataSampleProcessor processor = new DataSampleProcessor(config);
-        
+
         logger.info("Preparation of dataset.");
         final DataSet dataSet = datasetBuilder.buildDataSet(
                 processor.getDataSampleCollection(dataSamples),
@@ -103,9 +102,12 @@ public class ImageNetAPI {
 
         logger.info("Loading of model.");
         final NeuralNetModel model = new NeuralNetModel(modelFile, dataSet.getLabels(), modelType);
-        
+
         logger.info("Training of model.");
-        runner.trainModel(model, dataSet, outputSize);
+        runner.trainModel(
+                model,
+                dataSet
+        );
 
         logger.info("Saving of model.");
         return model.toFile(modelFile.getAbsolutePath());

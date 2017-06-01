@@ -29,7 +29,7 @@ public class ModelBuilderImpl implements ModelBuilder {
 
     Logger logger = LoggerFactory.getLogger(ModelBuilderImpl.class);
     Configuration config;
-    private static final String featureExtractionLayer = "fc2";
+    private static final String featureExtractionLayer = "fc1";
 
     public ModelBuilderImpl(Configuration config) {
         this.config = config;

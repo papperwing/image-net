@@ -3,7 +3,6 @@ package cz.muni.fi.imageNet.core.manager;
 import cz.muni.fi.imageNet.core.objects.Label;
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import org.datavec.api.conf.Configuration;
 import org.datavec.api.records.Record;
 import org.datavec.api.records.metadata.RecordMetaData;
@@ -46,7 +44,7 @@ public class ImageNetRecordReader
     protected File currentFile;
     protected BaseImageLoader imageLoader;
     protected Map<URI, Set<Label>> labelMap;
-    protected Set<Label> labels;
+    protected List<Label> labels;
     protected InputSplit inputSplit;
     protected Configuration conf;
     protected List<File> allFiles;
@@ -92,7 +90,7 @@ public class ImageNetRecordReader
             File imgFile = new File(location);
             allFiles.add(imgFile);
         }
-        this.labels = new TreeSet(isplit.getDataSet().getLabels());
+        this.labels = isplit.getDataSet().getLabels();
 
         iter = allFiles.iterator();
 
@@ -110,12 +108,16 @@ public class ImageNetRecordReader
 
                 DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
                 scaler.transform(row);
-                
+
                 ret = RecordConverter.toRecord(row);
-                //System.gc();//asMatrix probably cause increase of memory usage
-                for (Label label : labelMap.get(imageFile.toURI())) {
-                    final int indexOf = getLabels().indexOf(label.getLabelName());
-                    final IntWritable intWritable = new IntWritable(indexOf);
+                for (Label label : labels) {
+                    //TODO: this part is specifical for binary multi-label usage. Need to be rewriten for general imageclassification usage
+                    final IntWritable intWritable;
+                    if (labelMap.get(imageFile.toURI()).contains(label)) {
+                        intWritable = new IntWritable(1);
+                    } else {
+                        intWritable = new IntWritable(0);
+                    }
                     ret.add(intWritable);
                 }
                 return ret;

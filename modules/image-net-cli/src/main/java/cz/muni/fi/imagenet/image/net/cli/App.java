@@ -12,7 +12,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sampullara.cli.Args;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
@@ -51,6 +50,14 @@ public class App {
             config.setLearningRate(ArgLoader.learningRate);
         }
 
+        if (ArgLoader.epochCount != null) {
+            config.setEpoch(ArgLoader.epochCount);
+        }
+        
+        if (ArgLoader.tempLoc != null) {
+            config.setTempFolder(ArgLoader.tempLoc);
+        }
+        
         ImageNetAPI api = new ImageNetAPI(config);
 
         switch (ArgLoader.method) {
