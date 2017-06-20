@@ -3,7 +3,7 @@ package cz.muni.fi.imageNet.core.objects;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import org.deeplearning4j.nn.graph.ComputationGraph;
+import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.util.ModelSerializer;
 
 /**
@@ -13,7 +13,7 @@ import org.deeplearning4j.util.ModelSerializer;
  */
 public class NeuralNetModel {
 
-    private final ComputationGraph model;
+    private final Model model;
 
     private final List<Label> labels;
     
@@ -24,7 +24,7 @@ public class NeuralNetModel {
     private boolean trained;
     
 
-    public NeuralNetModel(final ComputationGraph model, List<Label> labelList, ModelType type) {
+    public NeuralNetModel(final Model model, List<Label> labelList, ModelType type) {
         this.trained = false;
         this.labels = labelList;
         this.model = model;
@@ -38,7 +38,7 @@ public class NeuralNetModel {
         this.type = type;
     }
 
-    public ComputationGraph getModel() {
+    public Model getModel() {
         return model;
     }
 

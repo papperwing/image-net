@@ -6,6 +6,8 @@ import cz.muni.fi.imageNet.core.objects.ModelType;
 import cz.muni.fi.imageNet.core.objects.NetworkConfiguration;
 import cz.muni.fi.imageNet.core.objects.NeuralNetModel;
 import java.io.IOException;
+import java.util.Random;
+import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
@@ -20,6 +22,11 @@ import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
 import org.deeplearning4j.nn.transferlearning.FineTuneConfiguration;
 import org.deeplearning4j.nn.transferlearning.TransferLearning;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.zoo.PretrainedType;
+import org.deeplearning4j.zoo.ZooModel;
+import org.deeplearning4j.zoo.model.AlexNet;
+import org.deeplearning4j.zoo.model.LeNet;
+import org.deeplearning4j.zoo.model.ResNet50;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
@@ -45,9 +52,11 @@ public class ModelBuilderImpl implements ModelBuilder {
             case VGG16:
                 return createVggModel(dataSet);
             case LENET:
-                throw new UnsupportedOperationException("Loading of keras Lenet is not available yet");
+                return createLeNetModel(dataSet);
+            case ALEXNET:
+                return createAlexNet(dataSet);
             case RESNET50:
-                throw new UnsupportedOperationException("Loading of keras resnet is not available yet");
+                return createResnet50(dataSet);
         }
         throw new IllegalArgumentException("Unsuported model type selected.");
     }
@@ -142,11 +151,10 @@ public class ModelBuilderImpl implements ModelBuilder {
             int numClasses = dataSet.getLabels().size();
             logger.info("Loading of Resnet50 model");
             ComputationGraph model = KerasModelImport.importKerasModelAndWeights(
-                    "/home/jpeschel/images/resnet50_dl4j_inference/configuration.json", 
+                    "/home/jpeschel/images/resnet50_dl4j_inference/configuration.json",
                     "/home/jpeschel/images/resnet50_dl4j_inference/resnet50_weights_tf_dim_ordering_tf_kernels.h5"
             );
 
-            
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -174,6 +182,16 @@ public class ModelBuilderImpl implements ModelBuilder {
             logger.error("Unable to load model", ex);
         }
         return null;
+    }
+
+    public NeuralNetModel createAlexNet(DataSet dataSet) {
+        ZooModel zooModel = new ResNet50(dataSet.getLabels().size(), new Random().nextInt(), 1, WorkspaceMode.SEPARATE);
+        try {
+            Model model = zooModel.initPretrained(PretrainedType.IMAGENET);
+            return new NeuralNetModel(model, dataSet.getLabels(), ModelType.ALEXNET);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Model weights was not loaded",ex);
+        }
     }
 
 }

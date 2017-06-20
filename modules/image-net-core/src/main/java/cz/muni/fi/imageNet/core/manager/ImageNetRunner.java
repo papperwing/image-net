@@ -29,10 +29,11 @@ import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculatorCG;
 import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationCondition;
 import org.deeplearning4j.earlystopping.termination.MaxTimeIterationTerminationCondition;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
+import org.deeplearning4j.earlystopping.trainer.EarlyStoppingTrainer;
 import org.deeplearning4j.eval.EvaluationBinary;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.graph.ComputationGraph;
-import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.stats.J7StatsListener;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
@@ -55,7 +56,6 @@ public class ImageNetRunner {
 
     private final Logger logger = LoggerFactory.getLogger(ImageNetRunner.class);
 
-    //TODO: odstranit a narvat do konfigurace
     private final int height = 224;
     private final int width = 224;
     private final int channels = 3;
@@ -97,7 +97,7 @@ public class ImageNetRunner {
 
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
         setupStatInterface(model.getModel());
-        final EarlyStoppingResult<ComputationGraph> result = runEarlyStoppingTrain(
+        final EarlyStoppingResult<Model> result = runEarlyStoppingTrain(
                 model.getModel(),
                 trainIterator,
                 testIterator,
@@ -110,12 +110,12 @@ public class ImageNetRunner {
     /**
      *
      *
-     * @param model
+     * @param modelWrapper
      * @param imageLocations
      * @return
      */
     public List<List<Label>> classify(
-            final NeuralNetModel model, 
+            final NeuralNetModel modelWrapper,
             final String[] imageLocations
     ) {
 
@@ -125,10 +125,21 @@ public class ImageNetRunner {
                 images.add(generateINDArray(new File(imageLocation)));
             }
 
-            final INDArray[] imageFeatures = images.toArray(new INDArray[images.size()]);
+            Model model = modelWrapper.getModel();
+            List<INDArray> outputArray = new ArrayList<>();
+            for (INDArray input : images) {
+                if (model instanceof MultiLayerNetwork) {
+                    outputArray.add(((MultiLayerNetwork) model).output(input));
+                } else {
+                    outputArray.add(((ComputationGraph) model).outputSingle(input));
+
+                }
+            }
+            INDArray[] iNDArrays = new INDArray[outputArray.size()];
+            iNDArrays = outputArray.toArray(iNDArrays);
             return getLabel(
-                    new ArrayList(model.getLabels()),
-                    model.getModel().output(imageFeatures)
+                    new ArrayList(modelWrapper.getLabels()), 
+                    iNDArrays
             );
         } catch (IOException ex) {
             logger.error("Loading of image was not sucessfull.", ex);
@@ -154,7 +165,7 @@ public class ImageNetRunner {
                 combinedTransform
         );
         logger.debug("Record reader inicialization.");
-        recordReader.initialize(dataset, null);
+        recordReader.initialize(dataset, new ImagePreProcessingScaler());
         final DataSetIterator dataIter
                 = new AsyncDataSetIterator(
                         new RecordReaderDataSetIterator(
@@ -165,11 +176,6 @@ public class ImageNetRunner {
                                 true
                         )
                 );
-        switch (modelType) {
-            case VGG16:
-                dataIter.setPreProcessor(TrainedModels.VGG16.getPreProcessor());
-                break;
-        }
         logger.debug("PreSaving dataset for faster processing");
         final File saveFolder = new File(this.conf.getTempFolder() + File.separator + "minibatches" + File.separator + saveDataName);
         saveFolder.mkdirs();
@@ -177,7 +183,7 @@ public class ImageNetRunner {
         int dataSaved = 0;
         while (dataIter.hasNext()) {
             final org.nd4j.linalg.dataset.DataSet next = dataIter.next();
-            
+
             logger.debug("" + dataSaved);
             next.save(new File(saveFolder, saveDataName + "-" + dataSaved + ".bin"));
             dataSaved++;
@@ -187,7 +193,7 @@ public class ImageNetRunner {
     }
 
     private List<List<Label>> getLabel(
-            final List<Label> labels, 
+            final List<Label> labels,
             final INDArray... outputs
     ) {
         //TODO: Vylepšit na iterování skrze INDArray
@@ -216,24 +222,52 @@ public class ImageNetRunner {
     }
 
     private EarlyStoppingResult runEarlyStoppingTrain(
-            final ComputationGraph model,
+            final Model model,
             final DataSetIterator trainDataSet,
             final DataSetIterator testDataSet,
             final String tempDirLoc
     ) {
-        final EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder()
-                .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
-                .modelSaver(new LocalFileGraphSaver(tempDirLoc))
-                .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true))
-                .evaluateEveryNEpochs(1);
 
-        if (this.conf.isTimed()) {
-            builder.iterationTerminationConditions(new MaxTimeIterationTerminationCondition(this.conf.getTime(), TimeUnit.MINUTES));
+        EarlyStoppingResult result = null;
+
+        if (model instanceof MultiLayerNetwork) {
+
+            final EarlyStoppingConfiguration.Builder<MultiLayerNetwork> builder = new EarlyStoppingConfiguration.Builder()
+                    .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
+                    .modelSaver(new LocalFileGraphSaver(tempDirLoc))
+                    .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true))
+                    .evaluateEveryNEpochs(1);
+
+            if (this.conf.isTimed()) {
+                builder.iterationTerminationConditions(new MaxTimeIterationTerminationCondition(this.conf.getTime(), TimeUnit.MINUTES));
+            }
+            final EarlyStoppingConfiguration<MultiLayerNetwork> esConfig = builder.build();
+            final EarlyStoppingTrainer trainer
+                    = new EarlyStoppingTrainer(
+                            esConfig,
+                            (MultiLayerNetwork) model,
+                            trainDataSet);
+            result = trainer.fit();
+        } else if (model instanceof ComputationGraph) {
+
+            final EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder()
+                    .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
+                    .modelSaver(new LocalFileGraphSaver(tempDirLoc))
+                    .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true))
+                    .evaluateEveryNEpochs(1);
+
+            if (this.conf.isTimed()) {
+                builder.iterationTerminationConditions(new MaxTimeIterationTerminationCondition(this.conf.getTime(), TimeUnit.MINUTES));
+            }
+            final EarlyStoppingConfiguration<ComputationGraph> esConfig = builder.build();
+            final EarlyStoppingGraphTrainer trainer
+                    = new EarlyStoppingGraphTrainer(
+                            esConfig,
+                            (ComputationGraph) model,
+                            trainDataSet);
+            result = trainer.fit();
         }
-        final EarlyStoppingConfiguration<ComputationGraph> esConfig = builder.build();
-        final EarlyStoppingGraphTrainer trainer = new EarlyStoppingGraphTrainer(esConfig, model, trainDataSet);
 
-        final EarlyStoppingResult<ComputationGraph> result = trainer.fit();
         logger.info("Termination reason: " + result.getTerminationReason());
         logger.info("Termination details: " + result.getTerminationDetails());
         logger.info("Total epochs: " + result.getTotalEpochs());
@@ -283,12 +317,17 @@ public class ImageNetRunner {
     }
 
     public String evaluateModel(
-            NeuralNetModel model, DataSet set
+            NeuralNetModel modelWrapper, DataSet set
     ) {
         DataSetIterator iter = prepareDataSetIterator(set, ModelType.LENET, "evaluation");
 
         final EvaluationBinary evaluationBinary = new EvaluationBinary(set.getLabels().size(), null);
-        model.getModel().doEvaluation(iter, evaluationBinary);
+        Model model = modelWrapper.getModel();
+        if (model instanceof MultiLayerNetwork) {
+            ((MultiLayerNetwork) model).doEvaluation(iter, evaluationBinary);
+        } else if (model instanceof ComputationGraph) {
+            ((ComputationGraph) model).doEvaluation(iter, evaluationBinary);
+        }
         return evaluationBinary.stats();
     }
 
