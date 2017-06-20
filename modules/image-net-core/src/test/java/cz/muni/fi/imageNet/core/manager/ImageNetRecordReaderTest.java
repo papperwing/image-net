@@ -4,7 +4,6 @@ import cz.muni.fi.imageNet.core.objects.DataSample;
 import cz.muni.fi.imageNet.core.objects.DataSet;
 import cz.muni.fi.imageNet.core.objects.Label;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +40,7 @@ public class ImageNetRecordReaderTest {
     public void tearDown() {
     }
 
-    ImageNetRecordReader instance = new ImageNetRecordReader(0, 0, 0);
+    ImageNetRecordReader instance = new ImageNetRecordReader(0, 0, 0, null);
 
     /**
      * Test of getLabels method, of class ImageNetRecordReader.
@@ -80,10 +79,8 @@ public class ImageNetRecordReaderTest {
         sampleList.add(sample2);
 
         DataSet dataset = new DataSetDummy(sampleList, labels);
-        ImageNetSplit split = new ImageNetSplit(dataset);
-        split.initialize();
         try {
-            instance.initialize(split);
+            instance.initialize(dataset, null);
             List<String> result = instance.getLabels();
             assertEquals(expResult, result);
         } catch (Exception ex) {
@@ -102,7 +99,7 @@ public class ImageNetRecordReaderTest {
         }
 
         @Override
-        public Collection<DataSample> getData() {
+        public List<DataSample> getData() {
             return sampleList;
         }
 

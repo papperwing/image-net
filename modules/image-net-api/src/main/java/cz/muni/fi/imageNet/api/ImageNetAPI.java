@@ -15,7 +15,6 @@ import cz.muni.fi.imageNet.model.creator.ModelBuilderImpl;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,7 +139,7 @@ public class ImageNetAPI {
         );
 
         DataSampleProcessor processor = new DataSampleProcessor(config);
-        final Collection<DataSample> dataSampleCollection = processor.getDataSampleCollection(dataSamples);
+        final List<DataSample> dataSampleCollection = processor.getDataSampleCollection(dataSamples);
 
         DataSet dataset = datasetBuilder.buildDataSet(dataSampleCollection, labels);
         return runner.evaluateModel(model, dataset);

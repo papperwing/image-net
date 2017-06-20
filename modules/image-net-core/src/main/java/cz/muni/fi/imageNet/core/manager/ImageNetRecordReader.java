@@ -1,15 +1,17 @@
 package cz.muni.fi.imageNet.core.manager;
 
+import cz.muni.fi.imageNet.core.objects.DataSample;
+import cz.muni.fi.imageNet.core.objects.DataSet;
 import cz.muni.fi.imageNet.core.objects.Label;
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.datavec.api.conf.Configuration;
 import org.datavec.api.records.Record;
 import org.datavec.api.records.metadata.RecordMetaData;
@@ -31,89 +33,91 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jakub Peschel
  */
-public class ImageNetRecordReader
-        extends BaseRecordReader {
+public class ImageNetRecordReader extends BaseRecordReader {
 
     private final Logger logger = LoggerFactory.getLogger(ImageNetRecordReader.class);
 
-    protected int height;
-    protected int width;
-    protected int channels = 1;
-    protected ImageTransform imageTransform;
-    protected Iterator<File> iter;
-    protected File currentFile;
-    protected BaseImageLoader imageLoader;
-    protected Map<URI, Set<Label>> labelMap;
-    protected List<Label> labels;
-    protected InputSplit inputSplit;
-    protected Configuration conf;
-    protected List<File> allFiles;
+    /**
+     * Image will be resized to this width
+     */
+    int imageWidth;
+    /**
+     * Image will be resized to this height
+     */
+    int imageHeight;
+    /**
+     * Image will use this amount of channels
+     */
+    int imageChannel;
 
-    public ImageNetRecordReader(
-            int height,
-            int width,
-            int channels
-    ) {
-        this(height, width, channels, null);
+    Configuration conf;
+    List<Label> labels;
+    DataSet dataSet;
+    Iterator<DataSample> iterator;
+
+    BaseImageLoader imageLoader;
+
+    DataNormalization dataNormalizer;
+
+    public ImageNetRecordReader() {
+
     }
 
-    public ImageNetRecordReader(
-            int height,
-            int width,
-            int channels,
-            ImageTransform imageTransform) {
-        this.height = height;
-        this.width = width;
-        this.channels = channels;
-        this.imageTransform = imageTransform;
-
-        if (imageLoader == null) {
-            imageLoader = new NativeImageLoader(height, width, channels, imageTransform);
-        }
+    public ImageNetRecordReader(int imageWidth, int imageHeight, int imageChannel, ImageTransform transform) {
+        this.imageWidth = imageWidth;
+        this.imageHeight = imageHeight;
+        this.imageChannel = imageChannel;
+        this.imageLoader = new NativeImageLoader(imageHeight, imageWidth, imageChannel, transform);
     }
 
-    public void initialize(Configuration conf, InputSplit split) throws IOException, InterruptedException {
-        throw new UnsupportedOperationException("Configuration is set in different way");
-    }
-
+    @Override
     public void initialize(InputSplit split) throws IOException, InterruptedException {
-        if (!(split instanceof ImageNetSplit)) {
-            throw new UnsupportedOperationException("Not available to use ImageNetRecordReader with simple split.");
-        }
-        this.inputSplit = split;
-        ImageNetSplit isplit = (ImageNetSplit) split;
-        this.labelMap = isplit.getLabelMap();
-
-        URI[] locations = split.locations();
-        this.allFiles = new ArrayList<>();
-        for (URI location : locations) {
-            File imgFile = new File(location);
-            allFiles.add(imgFile);
-        }
-        this.labels = isplit.getDataSet().getLabels();
-
-        iter = allFiles.iterator();
-
+        throw new UnsupportedOperationException("ImageNetRecordReader doesnt use input split");
     }
 
-    public List<Writable> next() {
-        if (iter != null && iter.hasNext()) {
+    @Override
+    public void initialize(Configuration conf, InputSplit split) throws IOException, InterruptedException {
+        this.conf = conf;
+        this.initialize(split);
+    }
 
-            List<Writable> ret = new ArrayList();
-            File imageFile = iter.next();;
-            currentFile = imageFile;
+    public void initialize(Configuration conf, DataSet dataSet, DataNormalization dataNormalizer) {
+        this.conf = conf;
+        this.initialize(dataSet, dataNormalizer);
+    }
+
+    public void initialize(DataSet dataSet, DataNormalization dataNormalizer) {
+        this.dataSet = dataSet;
+        this.labels = dataSet.getLabels();
+        List<DataSample> randomList = new ArrayList(dataSet.getData());
+        Collections.shuffle(randomList);
+        this.iterator = randomList.iterator();
+        if (dataNormalizer != null) {
+            this.dataNormalizer = dataNormalizer;
+        } else {
+            this.dataNormalizer = new ImagePreProcessingScaler(0, 1);
+        }
+    }
+
+    @Override
+    public List<Writable> next() {
+        if (iterator != null && iterator.hasNext()) {
+
+            List<Writable> ret;
+
+            DataSample sample = iterator.next();
+            File imageFile = new File(sample.getImageLocation());
             try {
                 invokeListeners(imageFile);
                 INDArray row = imageLoader.asMatrix(imageFile);
 
-                DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
-                scaler.transform(row);
+                dataNormalizer.transform(row);
 
                 ret = RecordConverter.toRecord(row);
                 for (Label label : labels) {
                     //TODO: this part is specifical for binary multi-label usage. Need to be rewriten for general imageclassification usage
                     final IntWritable intWritable;
-                    if (labelMap.get(imageFile.toURI()).contains(label)) {
+                    if (sample.getLabelSet().contains(label)) {
                         intWritable = new IntWritable(1);
                     } else {
                         intWritable = new IntWritable(0);
@@ -126,62 +130,62 @@ public class ImageNetRecordReader
             }
         }
         throw new IllegalStateException("No more elements");
-
     }
 
+    @Override
     public boolean hasNext() {
-        return iter.hasNext();
+        return iterator.hasNext();
     }
 
-    /**
-     * Method return names of custom Label objects.
-     *
-     * @return list of unique names
-     */
+    @Override
     public List<String> getLabels() {
-        List<String> result = new ArrayList<String>();
-        for (Label label : labels) {
-            result.add(label.getLabelName());
-        }
-        return result;
+        return LabelHelper.translate(labels);
     }
 
+    @Override
     public void reset() {
-        if (inputSplit == null) {
-            throw new IllegalStateException("Cannot reset without first initializing");
-        }
-        try {
-            initialize(inputSplit);
-        } catch (Exception e) {
-            throw new RuntimeException("Error during ImageNetRecordReader reset", e);
-        }
+        List<DataSample> randomList = new ArrayList(dataSet.getData());
+        Collections.shuffle(randomList);
+        this.iterator = randomList.iterator();
     }
 
-    public void close() throws IOException {
-
-    }
-
-    public void setConf(Configuration conf) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public Configuration getConf() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
+    @Override
     public List<Writable> record(URI uri, DataInputStream dataInputStream) throws IOException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public Record nextRecord() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public Record loadFromMetaData(RecordMetaData recordMetaData) throws IOException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public List<Record> loadFromMetaData(List<RecordMetaData> recordMetaDatas) throws IOException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    /**
+     * This RecordReader is not working with streams. Method do nothing.
+     *
+     * {@link Closeable#close()}
+     */
+    @Override
+    public void close() throws IOException {
+    }
+
+    @Override
+    public void setConf(Configuration conf) {
+        this.conf = conf;
+    }
+
+    @Override
+    public Configuration getConf() {
+        return conf;
+    }
+
 }

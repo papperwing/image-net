@@ -13,6 +13,6 @@ import java.util.List;
  */
 public interface DataSetBuilder {
     
-    DataSetImpl buildDataSet(Collection<DataSample> downloadResult, List<Label> labels);
+    DataSetImpl buildDataSet(List<DataSample> downloadResult, List<Label> labels);
 
 }

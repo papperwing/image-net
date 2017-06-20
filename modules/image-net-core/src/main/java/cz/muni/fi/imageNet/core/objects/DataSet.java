@@ -1,6 +1,5 @@
 package cz.muni.fi.imageNet.core.objects;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +9,7 @@ import java.util.Map;
  */
 public interface DataSet {
 
-    Collection<DataSample> getData();
+    List<DataSample> getData();
     
     int lenght();
     

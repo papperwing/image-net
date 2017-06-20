@@ -4,7 +4,6 @@ import cz.muni.fi.imageNet.core.objects.DataSample;
 import cz.muni.fi.imageNet.core.objects.DataSet;
 import cz.muni.fi.imageNet.core.objects.Label;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -16,13 +15,13 @@ import java.util.Map;
  */
 public class DataSetImpl implements DataSet {
 
-    private Collection<DataSample> dataList;
+    private List<DataSample> dataList;
 
     private final int dataSetLenght;
 
     private final List<Label> labels;
 
-    public DataSetImpl(final Collection<DataSample> dataList, List<Label> labels) {
+    public DataSetImpl(final List<DataSample> dataList, List<Label> labels) {
         this.dataList = dataList;
         this.dataSetLenght = dataList.size();
         this.labels = labels;
@@ -33,8 +32,8 @@ public class DataSetImpl implements DataSet {
         }
     }
 
-    public Collection<DataSample> getData() {
-        return Collections.unmodifiableCollection(dataList);
+    public List<DataSample> getData() {
+        return Collections.unmodifiableList(dataList);
     }
 
     public int lenght() {
@@ -50,15 +49,15 @@ public class DataSetImpl implements DataSet {
         for (Label label : labels) {
             result.add(label.getLabelName());
         }
-        return Collections.unmodifiableList(new ArrayList(result));
+        return Collections.unmodifiableList(result);
     }
 
     public DataSet split(double splitPercentage) {
         validatePecentage(splitPercentage);
         int splitIndex = (int) Math.ceil(this.dataSetLenght * splitPercentage);
 
-        Collection<DataSample> splitList = new ArrayList(this.dataList).subList(splitIndex, dataSetLenght - 1);
-        dataList = new ArrayList(this.dataList).subList(0, splitIndex);
+        List<DataSample> splitList = this.dataList.subList(splitIndex, dataSetLenght - 1);
+        dataList = this.dataList.subList(0, splitIndex);
         DataSetImpl splitSet = new DataSetImpl(splitList, labels);
 
         return splitSet;

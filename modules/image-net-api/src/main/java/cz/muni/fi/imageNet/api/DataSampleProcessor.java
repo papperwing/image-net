@@ -10,7 +10,6 @@ import cz.muni.fi.imageNet.api.dto.DataSampleDTO;
 import cz.muni.fi.imageNet.downloader.enums.DownloadState;
 import cz.muni.fi.imageNet.downloader.manager.ImageDownloadManager;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -27,7 +26,7 @@ public class DataSampleProcessor {
         this.config = config;
     }
     
-    public Collection<DataSample> getDataSampleCollection(DataSampleDTO[] dataSamples) {
+    public List<DataSample> getDataSampleCollection(DataSampleDTO[] dataSamples) {
         List<DataSample> result = new ArrayList();
         List<UrlImage> urlImages = new ArrayList();
         ImageDownloadManager downloadManager = new ImageDownloadManager(config);
@@ -48,8 +47,8 @@ public class DataSampleProcessor {
         return new ArrayList(labels);
     }
 
-    public Collection<? extends DataSample> transformToDataSamples(DownloadResult processRequest) {
-        Collection<DataSample> result = new ArrayList<DataSample>();
+    public List<? extends DataSample> transformToDataSamples(DownloadResult processRequest) {
+        List<DataSample> result = new ArrayList<DataSample>();
         for (DataImage dataImage : processRequest.getDataImageList()) {
             //TODO: vyřešit problémy s nestaženými
             if (dataImage.getState() == DownloadState.DOWNLOADED

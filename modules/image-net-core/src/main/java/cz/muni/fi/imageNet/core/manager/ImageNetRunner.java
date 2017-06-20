@@ -114,7 +114,10 @@ public class ImageNetRunner {
      * @param imageLocations
      * @return
      */
-    public List<List<Label>> classify(final NeuralNetModel model, final String[] imageLocations) {
+    public List<List<Label>> classify(
+            final NeuralNetModel model, 
+            final String[] imageLocations
+    ) {
 
         try {
             final List<INDArray> images = new ArrayList<>();
@@ -138,9 +141,6 @@ public class ImageNetRunner {
             final ModelType modelType,
             final String saveDataName
     ) {
-        //it is necessarry to use ImageNetSplit to stay consist, because ImageNetRecordReader force to use ImageNetSplit
-        final ImageNetSplit is = new ImageNetSplit(dataset);
-
         final List<Pair<ImageTransform, Double>> pipeline = new LinkedList<>();
         pipeline.add(new Pair(new ResizeImageTransform(300, 300), 1.0));
         pipeline.add(new Pair(new RandomCropTransform(224, 224), 1.0));
@@ -153,53 +153,43 @@ public class ImageNetRunner {
                 channels,
                 combinedTransform
         );
-        try {
-            logger.debug("Record reader inicialization.");
-            recordReader.initialize(is);
-            
-            //TODO: this dataset is set specificaly for binary multi-label problem. Has to be generalized.
-            final DataSetIterator dataIter
-                    = new AsyncDataSetIterator(
-                            new RecordReaderDataSetIterator(
-                                    recordReader,
-                                    batchSize,
-                                    1,
-                                    dataset.getLabels().size(),
-                                    true
-                            )
-                    );
-
-            switch (modelType) {
-                case VGG16:
-                    dataIter.setPreProcessor(TrainedModels.VGG16.getPreProcessor());
-                    break;
-            }
-
-            logger.debug("PreSaving dataset for faster processing");
-            final File saveFolder = new File(this.conf.getTempFolder() + File.separator + "minibatches" + File.separator + saveDataName);
-            saveFolder.mkdirs();
-            saveFolder.deleteOnExit();
-            int dataSaved = 0;
-            while (dataIter.hasNext()) {
-                final org.nd4j.linalg.dataset.DataSet next = dataIter.next();
-
-                logger.debug("" + dataSaved);
-                next.save(new File(saveFolder, saveDataName + "-" + dataSaved + ".bin"));
-                dataSaved++;
-            }
-            logger.debug("DataSet presaved");
-
-            return new ExistingMiniBatchDataSetIterator(saveFolder, saveDataName + "-%d.bin");
-        } catch (IOException ex) {
-            logger.error("Loading of image was not sucessfull.", ex);
-        } catch (InterruptedException ex) {
-            logger.error("Transformation of file into URI wasnot sucessfull.", ex);
+        logger.debug("Record reader inicialization.");
+        recordReader.initialize(dataset, null);
+        final DataSetIterator dataIter
+                = new AsyncDataSetIterator(
+                        new RecordReaderDataSetIterator(
+                                recordReader,
+                                batchSize,
+                                1,
+                                dataset.getLabels().size(),
+                                true
+                        )
+                );
+        switch (modelType) {
+            case VGG16:
+                dataIter.setPreProcessor(TrainedModels.VGG16.getPreProcessor());
+                break;
         }
-
-        return null;
+        logger.debug("PreSaving dataset for faster processing");
+        final File saveFolder = new File(this.conf.getTempFolder() + File.separator + "minibatches" + File.separator + saveDataName);
+        saveFolder.mkdirs();
+        saveFolder.deleteOnExit();
+        int dataSaved = 0;
+        while (dataIter.hasNext()) {
+            final org.nd4j.linalg.dataset.DataSet next = dataIter.next();
+            
+            logger.debug("" + dataSaved);
+            next.save(new File(saveFolder, saveDataName + "-" + dataSaved + ".bin"));
+            dataSaved++;
+        }
+        logger.debug("DataSet presaved");
+        return new ExistingMiniBatchDataSetIterator(saveFolder, saveDataName + "-%d.bin");
     }
 
-    private List<List<Label>> getLabel(final List<Label> labels, final INDArray... outputs) {
+    private List<List<Label>> getLabel(
+            final List<Label> labels, 
+            final INDArray... outputs
+    ) {
         //TODO: Vylepšit na iterování skrze INDArray
         final List<List<Label>> results = new ArrayList();
         for (INDArray output : outputs) {
@@ -215,7 +205,9 @@ public class ImageNetRunner {
         return results;
     }
 
-    private INDArray generateINDArray(final File image) throws IOException {
+    private INDArray generateINDArray(
+            final File image
+    ) throws IOException {
         final NativeImageLoader loader = new NativeImageLoader(height, width, channels);
         final INDArray imageVector = loader.asMatrix(image);
         final DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
@@ -251,7 +243,9 @@ public class ImageNetRunner {
         return result;
     }
 
-    private void printDatasetStatistics(final DataSet set) {
+    private void printDatasetStatistics(
+            final DataSet set
+    ) {
         final Map<Label, Integer> labelDistribution = set.getLabelDistribution();
 
         final StringBuilder statistic = new StringBuilder(System.lineSeparator());
@@ -278,7 +272,9 @@ public class ImageNetRunner {
         logger.info(statistic.toString());
     }
 
-    private void setupStatInterface(Model model) {
+    private void setupStatInterface(
+            Model model
+    ) {
 
         StatsStorage store = new J7FileStatsStorage(new File(this.conf.getImageDownloadFolder() + "/../storage_file"));
 
@@ -286,7 +282,9 @@ public class ImageNetRunner {
 
     }
 
-    public String evaluateModel(NeuralNetModel model, DataSet set) {
+    public String evaluateModel(
+            NeuralNetModel model, DataSet set
+    ) {
         DataSetIterator iter = prepareDataSetIterator(set, ModelType.LENET, "evaluation");
 
         final EvaluationBinary evaluationBinary = new EvaluationBinary(set.getLabels().size(), null);
