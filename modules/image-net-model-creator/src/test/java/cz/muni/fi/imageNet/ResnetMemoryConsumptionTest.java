@@ -25,7 +25,7 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
  */
 public class ResnetMemoryConsumptionTest {
 
-//    @Ignore
+    @Ignore
     @Test
     public void ResnetMemoryConsumptionTest() {
 
