@@ -25,12 +25,12 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
  */
 public class ResnetMemoryConsumptionTest {
 
-    @Ignore
+//    @Ignore
     @Test
     public void ResnetMemoryConsumptionTest() {
 
         Configuration config = new Configuration();
-        config.setTempFolder("~/tmp");
+        config.setTempFolder("/home/xpeschel/tmp");
         config.setEpoch(1);
         final ModelBuilder modelBuilder = new ModelBuilderImpl(config);
         NeuralNetModel model = modelBuilder.createModel(ModelType.RESNET50, new DummyDataSet());
@@ -39,6 +39,7 @@ public class ResnetMemoryConsumptionTest {
             @Override
             protected DataSetIterator prepareDataSetIterator(DataSet dataset, ModelType modelType, String saveDataName) {
                 final File saveFolder = new File(this.conf.getTempFolder() + File.separator + "minibatches" + File.separator + saveDataName);
+		System.out.println(saveFolder.getAbsolutePath());
                 return new ExistingMiniBatchDataSetIterator(saveFolder, saveDataName + "-%d.bin");
             }
             
