@@ -166,6 +166,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                             "flatten_3"
                     )
                     //.setOutputs("fc1000") uncomment after bugfix
+                    .setWorkspaceMode(WorkspaceMode.SEPARATE)
                     .build();
             
             logger.info("["+model.getNumInputArrays()+":"+ model.getNumOutputArrays()+"]");

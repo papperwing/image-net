@@ -66,7 +66,7 @@ public class ImageNetRunner {
     private final double treshold = 0.5;
     private final double splitPercentage = 0.8;
 
-    private final Configuration conf;
+    protected final Configuration conf;
 
     /**
      *
@@ -151,7 +151,7 @@ public class ImageNetRunner {
         return null;
     }
 
-    private DataSetIterator prepareDataSetIterator(
+    protected DataSetIterator prepareDataSetIterator(
             final DataSet dataset,
             final ModelType modelType,
             final String saveDataName
