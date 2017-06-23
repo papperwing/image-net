@@ -106,7 +106,7 @@ public class App {
                 ArgLoader.modelName,
                 dataset,
                 7,
-                ArgLoader.model != null ? ArgLoader.model : ModelType.ALEXNET
+                ArgLoader.model != null ? ArgLoader.model : ModelType.RESNET50
         );
     }
 
@@ -155,7 +155,7 @@ public class App {
                 new File(modelLocation1),
                 dataset1,
                 labelNameList1,
-                ArgLoader.model != null ? ArgLoader.model : ModelType.ALEXNET);
+                ArgLoader.model != null ? ArgLoader.model : ModelType.RESNET50);
         logger.info(evaluate);
     }
 
@@ -188,7 +188,7 @@ public class App {
                 new File(modelLocation1),
                 dataset,
                 7,
-                ArgLoader.model != null ? ArgLoader.model : ModelType.ALEXNET
+                ArgLoader.model != null ? ArgLoader.model : ModelType.RESNET50
         );
     }
 

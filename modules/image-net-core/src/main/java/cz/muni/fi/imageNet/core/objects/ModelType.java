@@ -7,6 +7,5 @@ package cz.muni.fi.imageNet.core.objects;
 public enum ModelType {
     VGG16,
     RESNET50,
-    LENET,
-    ALEXNET
+    LENET
 }

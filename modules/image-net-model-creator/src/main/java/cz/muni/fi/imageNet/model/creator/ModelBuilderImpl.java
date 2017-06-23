@@ -7,13 +7,13 @@ import cz.muni.fi.imageNet.core.objects.NetworkConfiguration;
 import cz.muni.fi.imageNet.core.objects.NeuralNetModel;
 import java.io.IOException;
 import java.util.Random;
-import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
+import org.deeplearning4j.nn.layers.feedforward.dense.DenseLayer;
 import org.deeplearning4j.nn.modelimport.keras.InvalidKerasConfigurationException;
 import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
 import org.deeplearning4j.nn.modelimport.keras.UnsupportedKerasConfigurationException;
@@ -24,8 +24,6 @@ import org.deeplearning4j.nn.transferlearning.TransferLearning;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
-import org.deeplearning4j.zoo.model.AlexNet;
-import org.deeplearning4j.zoo.model.LeNet;
 import org.deeplearning4j.zoo.model.ResNet50;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
@@ -33,11 +31,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ModelBuilderImpl implements ModelBuilder {
-
+    
     Logger logger = LoggerFactory.getLogger(ModelBuilderImpl.class);
     Configuration config;
     private static final String featureExtractionLayer = "fc1";
-
+    
     public ModelBuilderImpl(Configuration config) {
         this.config = config;
     }
@@ -53,14 +51,12 @@ public class ModelBuilderImpl implements ModelBuilder {
                 return createVggModel(dataSet);
             case LENET:
                 return createLeNetModel(dataSet);
-            case ALEXNET:
-                return createAlexNet(dataSet);
             case RESNET50:
                 return createResnet50(dataSet);
         }
         throw new IllegalArgumentException("Unsuported model type selected.");
     }
-
+    
     private NeuralNetModel createVggModel(DataSet dataSet) {
         int numClasses = dataSet.getLabels().size();
         try {
@@ -96,7 +92,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                     .build();
             logger.info(vgg16Transfer.summary());
             logger.debug("Number of elements: " + vgg16Transfer.params().lengthLong());
-
+            
             return new NeuralNetModel(
                     vgg16Transfer,
                     dataSet.getLabels(),
@@ -111,19 +107,19 @@ public class ModelBuilderImpl implements ModelBuilder {
         }
         return null;//Nahradit mojí výjimkou
     }
-
+    
     public NeuralNetModel createLeNetModel(DataSet dataSet) {
         try {
             int numClasses = dataSet.getLabels().size();
             ComputationGraph model = KerasModelImport.importKerasModelAndWeights("/home/jpeschel/images/googlenet/googlenet_architecture.json", "/home/jpeschel/images/googlenet/googlenet_weights.h5");
-
+            
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                     .updater(Updater.NESTEROVS)
                     .seed(this.config.getSeed())
                     .build();
-
+            
             ComputationGraph transferedModel = new TransferLearning.GraphBuilder(model)
                     .fineTuneConfiguration(fineTuneConf)
                     .setFeatureExtractor(featureExtractionLayer) //the specified layer and below are "frozen"
@@ -138,60 +134,45 @@ public class ModelBuilderImpl implements ModelBuilder {
                     .setWorkspaceMode(WorkspaceMode.SEPARATE)
                     .build();
             logger.info(transferedModel.summary());
-
+            
             return new NeuralNetModel(model, dataSet.getLabels(), ModelType.LENET);
         } catch (IOException | UnsupportedKerasConfigurationException | InvalidKerasConfigurationException ex) {
             logger.error("Unable to load model", ex);
         }
         return null;
     }
-
+    
     public NeuralNetModel createResnet50(DataSet dataSet) {
+        ZooModel zooModel = new ResNet50(dataSet.getLabels().size(), new Random().nextInt(), 1, WorkspaceMode.SEPARATE);
         try {
-            int numClasses = dataSet.getLabels().size();
-            logger.info("Loading of Resnet50 model");
-            ComputationGraph model = KerasModelImport.importKerasModelAndWeights(
-                    "/home/jpeschel/images/resnet50_dl4j_inference/configuration.json",
-                    "/home/jpeschel/images/resnet50_dl4j_inference/resnet50_weights_tf_dim_ordering_tf_kernels.h5"
-            );
-
+            ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.IMAGENET);
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                     .updater(Updater.NESTEROVS)
                     .seed(this.config.getSeed())
                     .build();
-
-            ComputationGraph transferedModel = new TransferLearning.GraphBuilder(model)
+            
+            logger.info("Original model:\n" + zooModelOriginal.summary());
+            String[] StringTypeArray = new String[0];
+            ComputationGraph model = new TransferLearning.GraphBuilder(zooModelOriginal)
                     .fineTuneConfiguration(fineTuneConf)
-                    .setFeatureExtractor("flatten1") //the specified layer and below are "frozen"
-                    .removeVertexKeepConnections("fc1000") //replace the functionality of the final vertex
+                    .removeVertexKeepConnections("fc1000")
                     .addLayer("fc1000",
                             new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
-                            .nIn(4096).nOut(numClasses)
-                            .weightInit(WeightInit.DISTRIBUTION)
-                            .dist(new NormalDistribution(0, 0.2 * (2.0 / (4096 + numClasses)))) //This weight init dist gave better results than Xavier
-                            .activation(Activation.SIGMOID).build(),
-                            "fc2")
-                    .setWorkspaceMode(WorkspaceMode.SEPARATE)
+                            .nIn(2048)
+                            .nOut(dataSet.getLabels().size())
+                            .weightInit(WeightInit.DISTRIBUTION).build(),
+                            "flatten_3"
+                    )
+                    //.setOutputs("fc1000") uncomment after bugfix
                     .build();
-            logger.info(transferedModel.summary());
-
-            return new NeuralNetModel(model, dataSet.getLabels(), ModelType.LENET);
-        } catch (IOException | UnsupportedKerasConfigurationException | InvalidKerasConfigurationException ex) {
-            logger.error("Unable to load model", ex);
-        }
-        return null;
-    }
-
-    public NeuralNetModel createAlexNet(DataSet dataSet) {
-        ZooModel zooModel = new ResNet50(dataSet.getLabels().size(), new Random().nextInt(), 1, WorkspaceMode.SEPARATE);
-        try {
-            Model model = zooModel.initPretrained(PretrainedType.IMAGENET);
-            return new NeuralNetModel(model, dataSet.getLabels(), ModelType.ALEXNET);
+            
+            logger.info("["+model.getNumInputArrays()+":"+ model.getNumOutputArrays()+"]");
+            return new NeuralNetModel(model, dataSet.getLabels(), ModelType.RESNET50);
         } catch (IOException ex) {
-            throw new IllegalStateException("Model weights was not loaded",ex);
+            throw new IllegalStateException("Model weights was not loaded", ex);
         }
     }
-
+    
 }

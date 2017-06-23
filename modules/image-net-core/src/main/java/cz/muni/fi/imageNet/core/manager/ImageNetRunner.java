@@ -16,9 +16,11 @@ import org.datavec.api.berkeley.Pair;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.transform.FlipImageTransform;
 import org.datavec.image.transform.ImageTransform;
+import org.datavec.image.transform.MultiImageTransform;
 import org.datavec.image.transform.PipelineImageTransform;
 import org.datavec.image.transform.RandomCropTransform;
 import org.datavec.image.transform.ResizeImageTransform;
+import org.datavec.image.transform.ShowImageTransform;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
@@ -85,6 +87,8 @@ public class ImageNetRunner {
             final DataSet dataset
     ) {
 
+        Nd4j.getMemoryManager().setAutoGcWindow(2500);
+
         final DataSet testSet = dataset.split(splitPercentage);
 
         /*get statistics of datasets after split*/
@@ -95,7 +99,7 @@ public class ImageNetRunner {
 
         final DataSetIterator testIterator = prepareDataSetIterator(testSet, model.getType(), "test");
 
-        Nd4j.getMemoryManager().setAutoGcWindow(2500);
+        System.gc();//To ensure memory clearing
         setupStatInterface(model.getModel());
         final EarlyStoppingResult<Model> result = runEarlyStoppingTrain(
                 model.getModel(),
@@ -138,7 +142,7 @@ public class ImageNetRunner {
             INDArray[] iNDArrays = new INDArray[outputArray.size()];
             iNDArrays = outputArray.toArray(iNDArrays);
             return getLabel(
-                    new ArrayList(modelWrapper.getLabels()), 
+                    new ArrayList(modelWrapper.getLabels()),
                     iNDArrays
             );
         } catch (IOException ex) {
@@ -156,7 +160,12 @@ public class ImageNetRunner {
         pipeline.add(new Pair(new ResizeImageTransform(300, 300), 1.0));
         pipeline.add(new Pair(new RandomCropTransform(224, 224), 1.0));
         pipeline.add(new Pair(new FlipImageTransform(1), 0.5));
-        final ImageTransform combinedTransform = new PipelineImageTransform(pipeline, false);
+        final ImageTransform combinedTransform
+                = new MultiImageTransform(
+                        new ImageTransform[]{
+                            new PipelineImageTransform(pipeline, false)
+                        }
+                );
 
         final ImageNetRecordReader recordReader = new ImageNetRecordReader(
                 height,
@@ -250,7 +259,7 @@ public class ImageNetRunner {
             result = trainer.fit();
         } else if (model instanceof ComputationGraph) {
 
-            final EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder()
+            final EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder<ComputationGraph>()
                     .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
                     .modelSaver(new LocalFileGraphSaver(tempDirLoc))
                     .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true))
