@@ -13,7 +13,6 @@ import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
-import org.deeplearning4j.nn.layers.feedforward.dense.DenseLayer;
 import org.deeplearning4j.nn.modelimport.keras.InvalidKerasConfigurationException;
 import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
 import org.deeplearning4j.nn.modelimport.keras.UnsupportedKerasConfigurationException;
@@ -162,6 +161,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                             new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
                             .nIn(2048)
                             .nOut(dataSet.getLabels().size())
+                            .activation(Activation.SIGMOID)
                             .weightInit(WeightInit.DISTRIBUTION).build(),
                             "flatten_3"
                     )
