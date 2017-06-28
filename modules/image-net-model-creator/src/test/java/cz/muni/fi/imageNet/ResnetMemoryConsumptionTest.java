@@ -39,7 +39,7 @@ public class ResnetMemoryConsumptionTest {
             @Override
             protected DataSetIterator prepareDataSetIterator(DataSet dataset, ModelType modelType, String saveDataName) {
                 final File saveFolder = new File(this.conf.getTempFolder() + File.separator + "minibatches" + File.separator + saveDataName);
-		System.out.println(saveFolder.getAbsolutePath());
+                System.out.println(saveFolder.getAbsolutePath());
                 return new ExistingMiniBatchDataSetIterator(saveFolder, saveDataName + "-%d.bin");
             }
             

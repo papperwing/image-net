@@ -32,13 +32,16 @@ import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationConditio
 import org.deeplearning4j.earlystopping.termination.MaxTimeIterationTerminationCondition;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingTrainer;
+import org.deeplearning4j.earlystopping.trainer.IEarlyStoppingTrainer;
 import org.deeplearning4j.eval.EvaluationBinary;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.parallelism.EarlyStoppingParallelTrainer;
 import org.deeplearning4j.ui.stats.J7StatsListener;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
+import org.nd4j.jita.conf.CudaEnvironment;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.ExistingMiniBatchDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -251,11 +254,16 @@ public class ImageNetRunner {
                 builder.iterationTerminationConditions(new MaxTimeIterationTerminationCondition(this.conf.getTime(), TimeUnit.MINUTES));
             }
             final EarlyStoppingConfiguration<MultiLayerNetwork> esConfig = builder.build();
-            final EarlyStoppingTrainer trainer
-                    = new EarlyStoppingTrainer(
-                            esConfig,
-                            (MultiLayerNetwork) model,
-                            trainDataSet);
+            final IEarlyStoppingTrainer<MultiLayerNetwork> trainer
+                    = new EarlyStoppingParallelTrainer<>(
+                            esConfig, 
+                            (MultiLayerNetwork) model, 
+                            trainDataSet, 
+                            null, 
+                            1, 
+                            1,
+                            1
+                    );
             result = trainer.fit();
         } else if (model instanceof ComputationGraph) {
 
@@ -269,11 +277,16 @@ public class ImageNetRunner {
                 builder.iterationTerminationConditions(new MaxTimeIterationTerminationCondition(this.conf.getTime(), TimeUnit.MINUTES));
             }
             final EarlyStoppingConfiguration<ComputationGraph> esConfig = builder.build();
-            final EarlyStoppingGraphTrainer trainer
-                    = new EarlyStoppingGraphTrainer(
+            final IEarlyStoppingTrainer<ComputationGraph> trainer
+                    = new EarlyStoppingParallelTrainer<>(
                             esConfig,
                             (ComputationGraph) model,
-                            trainDataSet);
+                            trainDataSet, 
+                            null, 
+                            1, 
+                            1,
+                            1
+                    );
             result = trainer.fit();
         }
 
