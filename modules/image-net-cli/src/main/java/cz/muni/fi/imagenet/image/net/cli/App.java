@@ -57,6 +57,14 @@ public class App {
         if (ArgLoader.tempLoc != null) {
             config.setTempFolder(ArgLoader.tempLoc);
         }
+
+        if (ArgLoader.gpuCount != null) {
+            config.setGPUCount(ArgLoader.gpuCount);
+        }
+
+        if (ArgLoader.batchSize != null) {
+            config.setBatchSize(ArgLoader.batchSize);
+        }
         
         ImageNetAPI api = new ImageNetAPI(config);
 
