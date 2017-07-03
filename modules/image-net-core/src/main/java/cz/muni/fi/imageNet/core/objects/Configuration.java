@@ -3,8 +3,6 @@ package cz.muni.fi.imageNet.core.objects;
 import java.sql.Time;
 
 /**
- *
- *
  * @author Jakub Peschel
  */
 public class Configuration {
@@ -16,7 +14,8 @@ public class Configuration {
     private String imageDownloadFolder = "/tmp/imageNet";
 
     /**
-     * Getter for {@link Configuration#imageDownloadFolder} constant. 
+     * Getter for {@link Configuration#imageDownloadFolder} constant.
+     *
      * @return Location in String
      */
     public String getImageDownloadFolder() {
@@ -25,13 +24,14 @@ public class Configuration {
 
     /**
      * Setter for {@link Configuration#imageDownloadFolder} constant.
-     * @param imageDownloadFolder 
+     *
+     * @param imageDownloadFolder
      */
     public void setImageDownloadFolder(String imageDownloadFolder) {
         this.imageDownloadFolder = imageDownloadFolder;
     }
     //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="tempFolder">
     /**
      * Location used for storing models. By default system use linux "/tmp/imageNet".
@@ -39,7 +39,8 @@ public class Configuration {
     private String tempFolder = "/tmp/imageNet";
 
     /**
-     * Getter for {@link Configuration#tempFolder} constant. 
+     * Getter for {@link Configuration#tempFolder} constant.
+     *
      * @return Location in String
      */
     public String getTempFolder() {
@@ -48,7 +49,8 @@ public class Configuration {
 
     /**
      * Setter for {@link Configuration#tempFolder} constant.
-     * @param tempFolder 
+     *
+     * @param tempFolder
      */
     public void setTempFolder(String tempFolder) {
         this.tempFolder = tempFolder;
@@ -57,7 +59,7 @@ public class Configuration {
 
     //<editor-fold defaultstate="collapsed" desc="corePoolSize">
     /**
-     * Number of threads 
+     * Number of threads
      */
     private int corePoolSize = 10;
 
@@ -72,7 +74,7 @@ public class Configuration {
 
     //<editor-fold defaultstate="collapsed" desc="maximumPoolSize">
     /**
-     * 
+     *
      */
     private int maximumPoolSize = 10;
 
@@ -85,10 +87,10 @@ public class Configuration {
     }
 
     //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="keepAliveTime">
     /**
-     * 
+     *
      */
     private int keepAliveTime = 10;
 
@@ -100,10 +102,10 @@ public class Configuration {
         this.keepAliveTime = keepAliveTime;
     }
     //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="epoch">
     /**
-     * 
+     *
      */
     private int epoch = 10000;
 
@@ -115,10 +117,10 @@ public class Configuration {
         this.epoch = epoch;
     }
     //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="seed">
     /**
-     * 
+     *
      */
     private int seed = 4;
 
@@ -130,10 +132,10 @@ public class Configuration {
         this.seed = seed;
     }
     //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="iterations">
     /**
-     * 
+     *
      */
     private int iterations = 4;
 
@@ -145,10 +147,10 @@ public class Configuration {
         this.iterations = iterations;
     }
     //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="learningRate">
     /**
-     * 
+     *
      */
     private double learningRate = 0.1;
 
@@ -160,10 +162,10 @@ public class Configuration {
         this.learningRate = learningRate;
     }
     //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="failedTreshold">
     /**
-     * 
+     *
      */
     private int failedTreshold = 1000;
 
@@ -175,10 +177,10 @@ public class Configuration {
         this.failedTreshold = failedTreshold;
     }
     //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="failedTreshold">
+
+    //<editor-fold defaultstate="collapsed" desc="isTimed">
     /**
-     * 
+     *
      */
     private boolean timed = false;
 
@@ -190,10 +192,10 @@ public class Configuration {
         this.timed = timed;
     }
     //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="failedTreshold">
+
+    //<editor-fold defaultstate="collapsed" desc="time">
     /**
-     * 
+     *
      */
     private long time = 0;
 
@@ -203,6 +205,36 @@ public class Configuration {
 
     public void setTime(long time) {
         this.time = time;
+    }
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="gpuCount">
+    /**
+     *
+     */
+    private int GPUCount = 1;
+
+    public int getGPUCount() {
+        return GPUCount;
+    }
+
+    public void setGPUCount(int GPUCount) {
+        this.GPUCount = GPUCount;
+    }
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="batchSize">
+    /**
+     *
+     */
+    private int batchSize = 32;
+
+    public int getBatchSize() {
+        return batchSize;
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
     }
     //</editor-fold>
 }

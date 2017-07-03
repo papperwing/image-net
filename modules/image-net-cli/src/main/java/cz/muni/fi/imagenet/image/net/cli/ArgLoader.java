@@ -35,4 +35,8 @@ public class ArgLoader {
     public static Integer epochCount;
     @Argument(alias = "tempLoc", description="Temp location", required = false)
     public static String tempLoc;
+    @Argument(alias = "gpuCount", description="amount of gpu's", required = false)
+    public static Integer gpuCount;
+    @Argument(alias = "batchSize", description="batch size", required = false)
+    public static Integer batchSize;
 }

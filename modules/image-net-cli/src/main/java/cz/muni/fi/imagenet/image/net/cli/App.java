@@ -57,6 +57,14 @@ public class App {
         if (ArgLoader.tempLoc != null) {
             config.setTempFolder(ArgLoader.tempLoc);
         }
+
+        if (ArgLoader.gpuCount != null) {
+            config.setGPUCount(ArgLoader.gpuCount);
+        }
+
+        if (ArgLoader.batchSize != null) {
+            config.setBatchSize(ArgLoader.batchSize);
+        }
         
         ImageNetAPI api = new ImageNetAPI(config);
 
@@ -106,7 +114,7 @@ public class App {
                 ArgLoader.modelName,
                 dataset,
                 7,
-                ArgLoader.model != null ? ArgLoader.model : ModelType.VGG16
+                ArgLoader.model != null ? ArgLoader.model : ModelType.RESNET50
         );
     }
 
@@ -155,7 +163,7 @@ public class App {
                 new File(modelLocation1),
                 dataset1,
                 labelNameList1,
-                ArgLoader.model != null ? ArgLoader.model : ModelType.VGG16);
+                ArgLoader.model != null ? ArgLoader.model : ModelType.RESNET50);
         logger.info(evaluate);
     }
 
@@ -188,7 +196,7 @@ public class App {
                 new File(modelLocation1),
                 dataset,
                 7,
-                ArgLoader.model != null ? ArgLoader.model : ModelType.VGG16
+                ArgLoader.model != null ? ArgLoader.model : ModelType.RESNET50
         );
     }
 

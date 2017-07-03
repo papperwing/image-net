@@ -3,9 +3,11 @@ package cz.muni.fi.imageNet.core.manager;
 import cz.muni.fi.imageNet.core.objects.DataSample;
 import cz.muni.fi.imageNet.core.objects.DataSet;
 import cz.muni.fi.imageNet.core.objects.Label;
+import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ import org.datavec.api.records.reader.BaseRecordReader;
 import org.datavec.api.split.InputSplit;
 import org.datavec.api.writable.IntWritable;
 import org.datavec.api.writable.Writable;
-import org.datavec.common.RecordConverter;
+import org.datavec.api.util.ndarray.RecordConverter;
 import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.transform.ImageTransform;
@@ -58,6 +60,7 @@ public class ImageNetRecordReader extends BaseRecordReader {
     BaseImageLoader imageLoader;
 
     DataNormalization dataNormalizer;
+    DataSample currentSample;
 
     public ImageNetRecordReader() {
 
@@ -105,8 +108,8 @@ public class ImageNetRecordReader extends BaseRecordReader {
 
             List<Writable> ret;
 
-            DataSample sample = iterator.next();
-            File imageFile = new File(sample.getImageLocation());
+            currentSample = iterator.next();
+            File imageFile = new File(currentSample.getImageLocation());
             try {
                 invokeListeners(imageFile);
                 INDArray row = imageLoader.asMatrix(imageFile);
@@ -117,7 +120,7 @@ public class ImageNetRecordReader extends BaseRecordReader {
                 for (Label label : labels) {
                     //TODO: this part is specifical for binary multi-label usage. Need to be rewriten for general imageclassification usage
                     final IntWritable intWritable;
-                    if (sample.getLabelSet().contains(label)) {
+                    if (currentSample.getLabelSet().contains(label)) {
                         intWritable = new IntWritable(1);
                     } else {
                         intWritable = new IntWritable(0);
@@ -154,19 +157,62 @@ public class ImageNetRecordReader extends BaseRecordReader {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    public List<Writable> record(ImageNetRecordMetaData metaData) {
+        DataSample sample = dataSet.getData().get(Integer.parseInt(metaData.getLocation()));
+        File imageFile = new File(currentSample.getImageLocation());
+        invokeListeners(imageFile);
+        try {
+            INDArray row = imageLoader.asMatrix(imageFile);
+
+            dataNormalizer.transform(row);
+
+            List<Writable> ret = RecordConverter.toRecord(row);
+            for (Label label : labels) {
+                //TODO: this part is specifical for binary multi-label usage. Need to be rewriten for general imageclassification usage
+                final IntWritable intWritable;
+                if (sample.getLabelSet().contains(label)) {
+                    intWritable = new IntWritable(1);
+                } else {
+                    intWritable = new IntWritable(0);
+                }
+                ret.add(intWritable);
+            }
+            return ret;
+        } catch (IOException ex) {
+            logger.error("Loading of image " + imageFile.toString() + " was not sucessfull.", ex);
+            throw new IllegalStateException("Pointer Ex", ex);
+        }
+    }
+
     @Override
     public Record nextRecord() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        List<Writable> list = next();
+        return new org.datavec.api.records.impl.Record(list, new ImageNetRecordMetaData(dataSet.getData().indexOf(currentSample)));
     }
 
     @Override
     public Record loadFromMetaData(RecordMetaData recordMetaData) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return loadFromMetaData(Collections.singletonList(recordMetaData)).get(0);
     }
 
     @Override
     public List<Record> loadFromMetaData(List<RecordMetaData> recordMetaDatas) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        List<Record> out = new ArrayList<>();
+        for (RecordMetaData meta : recordMetaDatas) {
+            List<Writable> next;
+            if (meta instanceof ImageNetRecordMetaData) {
+                next = record((ImageNetRecordMetaData) meta);
+            } else {
+                URI uri = meta.getURI();
+                File f = new File(uri);
+
+                try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(f)))) {
+                    next = record(uri, dis);
+                }
+            }
+            out.add(new org.datavec.api.records.impl.Record(next, meta));
+        }
+        return out;
     }
 
     /**

@@ -50,8 +50,6 @@ public class ImageNetAPI {
      */
     public File getModel(String modelName, DataSampleDTO[] dataSamples, int outputSize, ModelType modelType) throws IOException {
 
-        final long startTime = System.currentTimeMillis();
-
         logger.info("Starting to build model: " + modelName);
 
         final DataSetBuilder datasetBuilder = new DataSetBuilderImpl(config);
