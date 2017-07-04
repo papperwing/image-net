@@ -3,7 +3,6 @@ package cz.muni.fi.imageNet.model.creator;
 import cz.muni.fi.imageNet.core.objects.Configuration;
 import cz.muni.fi.imageNet.core.objects.DataSet;
 import cz.muni.fi.imageNet.core.objects.ModelType;
-import cz.muni.fi.imageNet.core.objects.NetworkConfiguration;
 import cz.muni.fi.imageNet.core.objects.NeuralNetModel;
 import java.io.IOException;
 import java.util.Random;
@@ -40,7 +39,7 @@ public class ModelBuilderImpl implements ModelBuilder {
     }
 
     /**
-     * Method takes parameters and create {@link NetworkConfiguration}.
+     * Method takes parameters and create {@link NeuralNetModel}.
      *
      * @return
      */
@@ -104,7 +103,7 @@ public class ModelBuilderImpl implements ModelBuilder {
         } catch (IOException ex) {
             logger.error("Invalid rights.", ex);
         }
-        return null;//Nahradit mojí výjimkou
+        return null;//replace with custom exception
     }
     
     public NeuralNetModel createLeNetModel(DataSet dataSet) {
