@@ -1,9 +1,9 @@
 package cz.muni.fi.imagenet.image.net.cli;
 
-import cz.muni.fi.imageNet.api.dto.DataSampleDTO;
-import cz.muni.fi.imageNet.core.objects.Configuration;
-import cz.muni.fi.imageNet.core.objects.ModelType;
-import cz.muni.fi.imageNet.api.ImageNetAPI;
+import cz.muni.fi.image.net.api.dto.DataSampleDTO;
+import cz.muni.fi.image.net.core.objects.Configuration;
+import cz.muni.fi.image.net.core.enums.ModelType;
+import cz.muni.fi.image.net.api.ImageNetAPI;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
