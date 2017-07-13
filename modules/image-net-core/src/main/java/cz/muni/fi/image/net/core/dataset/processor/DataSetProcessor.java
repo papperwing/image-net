@@ -32,8 +32,12 @@ public class DataSetProcessor {
     private final int width = 224;
     private final int channels = 3;
 
-    public DataSetProcessor(Configuration conf) {
+    final ModelType modelType;
+
+    public DataSetProcessor(Configuration conf,
+                            ModelType modelType) {
         this.conf = conf;
+        this.modelType = modelType;
     }
 
     public DataSetIterator prepareDataSetIterator(
@@ -83,7 +87,8 @@ public class DataSetProcessor {
                 height,
                 width,
                 channels,
-                combinedTransform
+                combinedTransform,
+                modelType
         );
 
         logger.debug("Record reader inicialization.");

@@ -1,5 +1,8 @@
 package cz.muni.fi.image.net.core.data.sample.processing;
 
+import cz.muni.fi.image.net.core.data.normalization.ImageNormalizer;
+import cz.muni.fi.image.net.core.enums.ModelType;
+import cz.muni.fi.image.net.core.image.transform.ImageTransformator;
 import cz.muni.fi.image.net.core.manager.LabelHelper;
 import cz.muni.fi.image.net.core.objects.DataSample;
 import cz.muni.fi.image.net.core.objects.DataSet;
@@ -63,15 +66,20 @@ public class ImageNetRecordReader extends BaseRecordReader {
     DataNormalization dataNormalizer;
     DataSample currentSample;
 
+    ImageTransformator transformator;
+    ImageNormalizer normalizer;
+
     public ImageNetRecordReader() {
 
     }
 
-    public ImageNetRecordReader(int imageWidth, int imageHeight, int imageChannel, ImageTransform transform) {
+    public ImageNetRecordReader(int imageWidth, int imageHeight, int imageChannel, ImageTransform transform, ModelType modelType) {
         this.imageWidth = imageWidth;
         this.imageHeight = imageHeight;
         this.imageChannel = imageChannel;
         this.imageLoader = new NativeImageLoader(imageHeight, imageWidth, imageChannel, transform);
+        this.transformator =  new ImageTransformator(modelType, new int[] {imageWidth, imageHeight, imageChannel});
+        this.normalizer = new ImageNormalizer(modelType);
     }
 
     @Override
@@ -99,7 +107,7 @@ public class ImageNetRecordReader extends BaseRecordReader {
         if (dataNormalizer != null) {
             this.dataNormalizer = dataNormalizer;
         } else {
-            this.dataNormalizer = new ImagePreProcessingScaler(0, 1);
+            this.dataNormalizer = normalizer.getDataNormalization();
         }
     }
 

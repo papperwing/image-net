@@ -78,7 +78,7 @@ public class ImageNetRunner {
         printDatasetStatistics(dataset);
         printDatasetStatistics(testSet);
 
-        DataSetProcessor processor = new DataSetProcessor(conf);
+        DataSetProcessor processor = new DataSetProcessor(conf, model.getType());
 
         final DataSetIterator trainIterator = processor.presaveDataSetIterator(
                 processor.prepareDataSetIterator(dataset),
@@ -350,7 +350,7 @@ public class ImageNetRunner {
             NeuralNetModel modelWrapper,
             DataSet dataSet
     ) {
-        DataSetProcessor processor = new DataSetProcessor(this.conf);
+        DataSetProcessor processor = new DataSetProcessor(this.conf, modelWrapper.getType());
         DataSetIterator iter = processor.presaveDataSetIterator(
                 processor.prepareDataSetIterator(dataSet),
                 ModelType.LENET,

@@ -36,7 +36,6 @@ public class ResnetMemoryConsumptionTest {
         NeuralNetModel model = modelBuilder.createModel(ModelType.RESNET50, new DummyDataSet());
         final ImageNetRunner runner = new ImageNetRunner(config){
 
-            @Override
             protected DataSetIterator prepareDataSetIterator(DataSet dataset, ModelType modelType, String saveDataName) {
                 final File saveFolder = new File(this.conf.getTempFolder() + File.separator + "minibatches" + File.separator + saveDataName);
                 System.out.println(saveFolder.getAbsolutePath());

@@ -1,6 +1,7 @@
 package cz.muni.fi.image.net.core.manager;
 
 import cz.muni.fi.image.net.core.data.sample.processing.ImageNetRecordReader;
+import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.DataSample;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.objects.Label;
@@ -41,7 +42,7 @@ public class ImageNetRecordReaderTest {
     public void tearDown() {
     }
 
-    ImageNetRecordReader instance = new ImageNetRecordReader(0, 0, 0, null);
+    ImageNetRecordReader instance = new ImageNetRecordReader(0, 0, 0, null, ModelType.RESNET50);
 
     /**
      * Test of getLabels method, of class ImageNetRecordReader.

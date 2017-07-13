@@ -45,17 +45,18 @@ public class ModelBuilderImpl implements ModelBuilder {
      */
     public NeuralNetModel createModel(ModelType modelType, DataSet dataSet) {
         switch (modelType) {
-            case VGG16:
+            /*case VGG16:
                 return createVggModel(dataSet);
             case LENET:
-                return createLeNetModel(dataSet);
+                return createLeNetModel(dataSet);*/
             case RESNET50:
                 return createResnet50(dataSet);
         }
         throw new IllegalArgumentException("Unsuported model type selected.");
     }
-    
-    private NeuralNetModel createVggModel(DataSet dataSet) {
+
+    //TODO replace bellow with zoo implementation
+    /*private NeuralNetModel createVggModel(DataSet dataSet) {
         int numClasses = dataSet.getLabels().size();
         try {
             TrainedModelHelper modelImportHelper = new TrainedModelHelper(TrainedModels.VGG16);
@@ -138,7 +139,7 @@ public class ModelBuilderImpl implements ModelBuilder {
             logger.error("Unable to load model", ex);
         }
         return null;
-    }
+    }*/
     
     public NeuralNetModel createResnet50(DataSet dataSet) {
         ZooModel zooModel = new ResNet50(dataSet.getLabels().size(), new Random().nextInt(), 1, WorkspaceMode.SEPARATE);
@@ -147,13 +148,14 @@ public class ModelBuilderImpl implements ModelBuilder {
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                    .updater(Updater.NESTEROVS)
+                    .updater(Updater.ADAM)
                     .seed(this.config.getSeed())
                     .build();
             
             logger.info("Original model:\n" + zooModelOriginal.summary());
             String[] StringTypeArray = new String[0];
             ComputationGraph model = new TransferLearning.GraphBuilder(zooModelOriginal)
+                    .setFeatureExtractor("flatten_3")
                     .fineTuneConfiguration(fineTuneConf)
                     .removeVertexKeepConnections("fc1000")
                     .addLayer("fc1000",
