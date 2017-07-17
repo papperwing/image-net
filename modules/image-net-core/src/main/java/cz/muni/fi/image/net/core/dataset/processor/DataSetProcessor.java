@@ -108,6 +108,8 @@ public class DataSetProcessor {
                 )
         );
 
+        dataIter.setPreProcessor(new ImageNormalizer(modelType).getDataNormalization());
+
         return dataIter;
     }
 
@@ -141,9 +143,11 @@ public class DataSetProcessor {
         }
         logger.debug("DataSet presaved");
 
-        return new ExistingMiniBatchDataSetIterator(
+        DataSetIterator iter = new ExistingMiniBatchDataSetIterator(
                 saveFolder,
                 saveDataName + "-%d.bin"
         );
+        iter.setPreProcessor(new ImageNormalizer(modelType).getDataNormalization());
+        return iter;
     }
 }

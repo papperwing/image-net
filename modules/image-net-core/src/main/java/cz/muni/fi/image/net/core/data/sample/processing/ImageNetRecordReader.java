@@ -61,8 +61,6 @@ public class ImageNetRecordReader extends BaseRecordReader {
     DataSet dataSet;
     Iterator<DataSample> iterator;
 
-    BaseImageLoader imageLoader;
-
     DataNormalization dataNormalizer;
     DataSample currentSample;
 
@@ -77,7 +75,6 @@ public class ImageNetRecordReader extends BaseRecordReader {
         this.imageWidth = imageWidth;
         this.imageHeight = imageHeight;
         this.imageChannel = imageChannel;
-        this.imageLoader = new NativeImageLoader(imageHeight, imageWidth, imageChannel, transform);
         this.transformator =  new ImageTransformator(modelType, new int[] {imageWidth, imageHeight, imageChannel});
         this.normalizer = new ImageNormalizer(modelType);
     }
@@ -120,12 +117,8 @@ public class ImageNetRecordReader extends BaseRecordReader {
             currentSample = iterator.next();
             File imageFile = new File(currentSample.getImageLocation());
             try {
-                invokeListeners(imageFile);
-                INDArray row = imageLoader.asMatrix(imageFile);
+                ret = transformator.transformImage(currentSample.getImageLocation());
 
-                dataNormalizer.transform(row);
-
-                ret = RecordConverter.toRecord(row);
                 for (Label label : labels) {
                     //TODO: this part is specifical for binary multi-label usage. Need to be rewriten for general imageclassification usage
                     final IntWritable intWritable;

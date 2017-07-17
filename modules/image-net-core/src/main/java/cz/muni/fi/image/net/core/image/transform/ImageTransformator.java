@@ -5,10 +5,10 @@ import org.datavec.api.berkeley.Pair;
 import org.datavec.api.util.ndarray.RecordConverter;
 import org.datavec.api.writable.Writable;
 import org.datavec.image.loader.BaseImageLoader;
-import org.datavec.image.loader.ImageLoader;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.transform.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,11 +20,13 @@ import java.util.List;
  */
 public class ImageTransformator {
 
+    DataNormalization normalizer = null;
+
     BaseImageLoader loader;
     int[] inputShape = null;
 
     public ImageTransformator(ModelType modelType) {
-        this.loader = new NativeImageLoader(0, 0, 0,
+        this.loader = new NativeImageLoader(224, 224, 3,
                 getTransformation(modelType)
         );
     }
@@ -47,6 +49,10 @@ public class ImageTransformator {
         File imageFile = new File(fileLocation);
         INDArray row = loader.asMatrix(imageFile);
 
+        if (normalizer != null) {
+            normalizer.transform(row);
+
+        }
 
         return RecordConverter.toRecord(row);
     }
