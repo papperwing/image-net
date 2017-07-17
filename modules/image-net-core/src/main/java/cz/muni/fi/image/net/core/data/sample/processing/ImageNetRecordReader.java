@@ -115,7 +115,6 @@ public class ImageNetRecordReader extends BaseRecordReader {
             List<Writable> ret;
 
             currentSample = iterator.next();
-            File imageFile = new File(currentSample.getImageLocation());
             try {
                 ret = transformator.transformImage(currentSample.getImageLocation());
 
@@ -131,7 +130,7 @@ public class ImageNetRecordReader extends BaseRecordReader {
                 }
                 return ret;
             } catch (IOException ex) {
-                logger.error("Loading of image " + imageFile.toString() + " was not sucessfull.", ex);
+                logger.error("Loading of image " + currentSample.getImageLocation() + " was not sucessfull.", ex);
             }
         }
         throw new IllegalStateException("No more elements");
@@ -161,14 +160,9 @@ public class ImageNetRecordReader extends BaseRecordReader {
 
     public List<Writable> record(ImageNetRecordMetaData metaData) {
         DataSample sample = dataSet.getData().get(Integer.parseInt(metaData.getLocation()));
-        File imageFile = new File(currentSample.getImageLocation());
-        invokeListeners(imageFile);
         try {
-            INDArray row = imageLoader.asMatrix(imageFile);
 
-            dataNormalizer.transform(row);
-
-            List<Writable> ret = RecordConverter.toRecord(row);
+            List<Writable> ret = transformator.transformImage(currentSample.getImageLocation());
             for (Label label : labels) {
                 //TODO: this part is specifical for binary multi-label usage. Need to be rewriten for general imageclassification usage
                 final IntWritable intWritable;
@@ -181,7 +175,7 @@ public class ImageNetRecordReader extends BaseRecordReader {
             }
             return ret;
         } catch (IOException ex) {
-            logger.error("Loading of image " + imageFile.toString() + " was not sucessfull.", ex);
+            logger.error("Loading of image " + currentSample.getImageLocation() + " was not sucessfull.", ex);
             throw new IllegalStateException("Pointer Ex", ex);
         }
     }
