@@ -10,6 +10,7 @@ import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.InvalidKerasConfigurationException;
@@ -142,35 +143,46 @@ public class ModelBuilderImpl implements ModelBuilder {
     }*/
     
     public NeuralNetModel createResnet50(DataSet dataSet) {
-        ZooModel zooModel = new ResNet50(dataSet.getLabels().size(), new Random().nextInt(), 1, WorkspaceMode.SEPARATE);
+        ZooModel zooModel = new ResNet50(
+                dataSet.getLabels().size(),
+                new Random().nextLong(),
+                1,
+                WorkspaceMode.SEPARATE
+        );
         try {
             ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.IMAGENET);
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                    .updater(Updater.ADAM)
+                    .updater(Updater.SGD)
                     .seed(this.config.getSeed())
                     .build();
-            
-            logger.info("Original model:\n" + zooModelOriginal.summary());
-            String[] StringTypeArray = new String[0];
+
             ComputationGraph model = new TransferLearning.GraphBuilder(zooModelOriginal)
                     .setFeatureExtractor("flatten_3")
                     .fineTuneConfiguration(fineTuneConf)
                     .removeVertexKeepConnections("fc1000")
-                    .addLayer("fc1000",
-                            new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
+                    .addLayer("nonlinearity",
+                            new DenseLayer.Builder()
                             .nIn(2048)
-                            .nOut(dataSet.getLabels().size())
-                            .activation(Activation.SIGMOID)
+                            .nOut(1024)
+                            .activation(Activation.RELU)
                             .weightInit(WeightInit.DISTRIBUTION).build(),
                             "flatten_3"
+                    )
+                    .addLayer("fc1000",
+                            new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
+                                    .nIn(1024)
+                                    .nOut(dataSet.getLabels().size())
+                                    .activation(Activation.SIGMOID)
+                                    .weightInit(WeightInit.DISTRIBUTION).build(),
+                            "nonlinearity"
                     )
                     //.setOutputs("fc1000") uncomment after bugfix
                     .setWorkspaceMode(WorkspaceMode.SEPARATE)
                     .build();
-            
-            logger.info("["+model.getNumInputArrays()+":"+ model.getNumOutputArrays()+"]");
+
+            logger.info("New model:\n" + zooModelOriginal.summary());
             return new NeuralNetModel(model, dataSet.getLabels(), ModelType.RESNET50);
         } catch (IOException ex) {
             throw new IllegalStateException("Model weights was not loaded", ex);

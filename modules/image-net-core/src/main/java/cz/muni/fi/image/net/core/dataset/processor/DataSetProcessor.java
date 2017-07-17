@@ -1,5 +1,6 @@
 package cz.muni.fi.image.net.core.dataset.processor;
 
+import cz.muni.fi.image.net.core.data.normalization.ImageNormalizer;
 import cz.muni.fi.image.net.core.data.sample.processing.ImageNetRecordReader;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
@@ -94,7 +95,7 @@ public class DataSetProcessor {
         logger.debug("Record reader inicialization.");
         recordReader.initialize(
                 dataset,
-                new ImagePreProcessingScaler()
+                null
         );
 
         final DataSetIterator dataIter = new AsyncDataSetIterator(
