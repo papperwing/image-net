@@ -7,6 +7,7 @@ import org.datavec.image.transform.ImageTransform;
 import org.datavec.image.transform.PipelineImageTransform;
 import org.datavec.image.transform.ShowImageTransform;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -24,6 +25,7 @@ import static org.junit.Assert.*;
  */
 public class ImageTransformatorTest {
 
+    @Ignore
     @Test
     public void transformVizualTest() throws Exception {
         System.out.println("Vizual test of transformation");
@@ -33,7 +35,7 @@ public class ImageTransformatorTest {
             @Override
             public void run() {
                 try {
-                    ImageTransform vizualizer = new ShowImageTransform("vizualizer-before", 1000);
+                    ImageTransform vizualizer = new ShowImageTransform("vizualizer-before", 100000);
                     new NativeImageLoader(224, 224, 3, vizualizer).asMatrix(image);
                 } catch (Exception ex) {
                     System.err.println(
@@ -47,7 +49,7 @@ public class ImageTransformatorTest {
             @Override
             public void run() {
                 try {
-                    ImageTransform vizualizer = new ShowImageTransform("vizualizer-after", 1000);
+                    ImageTransform vizualizer = new ShowImageTransform("vizualizer-after", 100000);
                     ImageTransform transform = new PipelineImageTransform(new ImageTransformator(ModelType.RESNET50).getTransformation(ModelType.RESNET50), vizualizer);
                     new NativeImageLoader(224, 224, 3, transform).asMatrix(image);
                 } catch (Exception ex) {
@@ -62,6 +64,23 @@ public class ImageTransformatorTest {
         exec.execute(originalThread);
         exec.execute(transformedThread);
 
+        System.out.println("End of vizual test");
+    }
+
+    @Test
+    public void transform2VizualTest() throws Exception {
+        System.out.println("Second vizual test of transformation");
+        final File image = new File(this.getClass().getClassLoader().getResource("testImage.jpg").getFile());
+
+        ImageTransform vizualizer = new ShowImageTransform("vizualizer-before", 1000);
+        new NativeImageLoader(224, 224, 3, vizualizer).asMatrix(image);
+
+
+        vizualizer = new ShowImageTransform("vizualizer-after", 1000);
+        ImageTransform transform = new PipelineImageTransform(new ImageTransformator(ModelType.RESNET50).getTransformation(ModelType.RESNET50), vizualizer);
+        new NativeImageLoader(224, 224, 3, transform).asMatrix(image);
+
+        wait(100000);
         System.out.println("End of vizual test");
     }
 
