@@ -23,15 +23,19 @@ public class ImageTransformator {
     DataNormalization normalizer = null;
 
     BaseImageLoader loader;
-    int[] inputShape = null;
+    int[] inputShape;
 
     public ImageTransformator(ModelType modelType) {
-        this.loader = new NativeImageLoader(224, 224, 3,
-                getTransformation(modelType)
-        );
+        this(
+                modelType,
+                new int[]{224,224,3}
+                );
     }
 
-    public ImageTransformator(ModelType modelType, int[] inputShape) {
+    public ImageTransformator(
+            ModelType modelType,
+            int[] inputShape
+    ) {
         if (inputShape.length != 3) {
             throw new IllegalArgumentException("Expected lenght of inputShape 3 but got: " + inputShape.length);
         }
