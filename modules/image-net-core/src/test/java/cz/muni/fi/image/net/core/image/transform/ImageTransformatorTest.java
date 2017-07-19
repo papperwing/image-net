@@ -1,6 +1,7 @@
 package cz.muni.fi.image.net.core.image.transform;
 
 import cz.muni.fi.image.net.core.enums.ModelType;
+import cz.muni.fi.image.net.core.image.visualization.INDAVisualizer;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.transform.ImageTransform;
@@ -9,6 +10,7 @@ import org.datavec.image.transform.ShowImageTransform;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.File;
 import java.util.Collection;
@@ -67,21 +69,34 @@ public class ImageTransformatorTest {
         System.out.println("End of vizual test");
     }
 
+    @Ignore
     @Test
     public void transform2VizualTest() throws Exception {
         System.out.println("Second vizual test of transformation");
         final File image = new File(this.getClass().getClassLoader().getResource("testImage.jpg").getFile());
 
-        ImageTransform vizualizer = new ShowImageTransform("vizualizer-before", 1000);
+        ImageTransform vizualizer = new ShowImageTransform("vizualizer-before");
         new NativeImageLoader(224, 224, 3, vizualizer).asMatrix(image);
 
 
-        vizualizer = new ShowImageTransform("vizualizer-after", 1000);
+        vizualizer = new ShowImageTransform("vizualizer-after", 10000);
         ImageTransform transform = new PipelineImageTransform(new ImageTransformator(ModelType.RESNET50).getTransformation(ModelType.RESNET50), vizualizer);
         new NativeImageLoader(224, 224, 3, transform).asMatrix(image);
 
-        wait(100000);
         System.out.println("End of vizual test");
+    }
+
+    @Test
+    public void visualizeINDATest() throws Exception {
+        System.out.println("Third vizual test of transformation");
+        final File imageFile = new File(this.getClass().getClassLoader().getResource("testImage.jpg").getFile());
+
+        INDArray array = new NativeImageLoader(224, 224, 3).asMatrix(imageFile);
+
+        INDAVisualizer visualizer = new INDAVisualizer();
+        visualizer.visualizeINDA(array, "testINDA");
+
+
     }
 
 }
