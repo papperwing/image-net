@@ -21,7 +21,7 @@ public class INDAVisualizer {
         int width = indArray.shape()[2];
         int height = indArray.shape()[3];
 
-        CanvasFrame canvas = new CanvasFrame(windowName);
+        CanvasFrame canvas = new CanvasFrame(windowName, 1.0);
         canvas.setCanvasSize(width,height);
         canvas.showImage(indaConverter.convert(indArray));
     }

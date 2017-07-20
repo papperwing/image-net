@@ -30,7 +30,7 @@ public class INDArrayFrameConverter extends FrameConverter<INDArray> {
 
         int width = 0;
         int height = 0;
-        int depth = Frame.DEPTH_INT;
+        int depth = Frame.DEPTH_BYTE;
         int channel = 1;
         switch (shape.length) {
             case 4:
@@ -47,13 +47,9 @@ public class INDArrayFrameConverter extends FrameConverter<INDArray> {
 
 
         frame = new Frame(width, height, depth, channel);
-        IntBuffer out = IntBuffer.allocate(width * height * channel);
+        ByteBuffer out = ByteBuffer.allocate(width * height * channel);
         System.out.println(Arrays.asList(out.array()).toString());
         restoreRGBImage(indarray, out);
-        int[] output = out.array();
-        System.out.println(output.length);
-        System.out.println(Arrays.toString(output));
-        System.out.println(frame.image.length);
         frame.image[0] = out;
         return frame;
     }
@@ -70,7 +66,7 @@ public class INDArrayFrameConverter extends FrameConverter<INDArray> {
      * @param tensor3D
      * @return
      */
-    private void restoreRGBImage(INDArray tensor3D, IntBuffer out) {
+    private void restoreRGBImage(INDArray tensor3D, ByteBuffer out) {
 
         normalize(tensor3D);
 
@@ -90,22 +86,25 @@ public class INDArrayFrameConverter extends FrameConverter<INDArray> {
             arrayR = arrayB;
         }
 
-        for (int x = 0; x < arrayR.columns(); x++) {
-            for (int y = 0; y < arrayR.rows(); y++) {
-                int valueX = (arrayR.getRow(y).getInt(x));
-                int valueY = (arrayG.getRow(y).getInt(x));
-                int valueZ = (arrayB.getRow(y).getInt(x));
+        for (int y = 0; y < arrayR.rows(); y++) {
+            for (int x = 0; x < arrayR.columns(); x++) {
+                byte valueX = (byte) (arrayR.getRow(y).getInt(x));
+                byte valueY = (byte) (arrayG.getRow(y).getInt(x));
+                byte valueZ = (byte) (arrayB.getRow(y).getInt(x));
 
-                out.put(new int[]{valueZ, valueY, valueX});
+                out.put(new byte[]{valueZ, valueY, valueX});
             }
         }
     }
 
-    public void normalize(INDArray tensor3D){
+    public void normalize(INDArray tensor3D) {
         int max = tensor3D.amaxNumber().intValue();
         int min = tensor3D.aminNumber().intValue();
-        tensor3D.sub(min);
-        tensor3D.mul(255/(max-min));
+        if (max > 255 | min < 0) {
+            tensor3D.sub(min);
+            tensor3D.mul(255 / (max - min));
+        }
+        tensor3D.sub(256/2);
     }
 
 }
