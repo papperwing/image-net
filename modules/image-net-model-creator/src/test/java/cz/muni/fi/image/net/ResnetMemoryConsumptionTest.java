@@ -1,6 +1,6 @@
 package cz.muni.fi.image.net;
 
-import cz.muni.fi.image.net.core.manager.ImageNetRunner;
+import cz.muni.fi.image.net.core.manager.ImageNetTrainer;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.objects.Label;
@@ -9,41 +9,59 @@ import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.NeuralNetModel;
 import cz.muni.fi.image.net.model.creator.ModelBuilder;
 import cz.muni.fi.image.net.model.creator.ModelBuilderImpl;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.nd4j.linalg.dataset.ExistingMiniBatchDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 /**
- *
- * @author jpeschel
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
 public class ResnetMemoryConsumptionTest {
+
+    private static final String TEMP_PATH = "./tmp";
 
     @Ignore("Test need to be generalized, once I find limits etc.")
     @Test
     public void ResnetMemoryConsumptionTest() {
 
         Configuration config = new Configuration();
-        config.setTempFolder("/home/xpeschel/tmp");
-        config.setEpoch(1);
-        final ModelBuilder modelBuilder = new ModelBuilderImpl(config);
-        NeuralNetModel model = modelBuilder.createModel(ModelType.RESNET50, new DummyDataSet());
-        final ImageNetRunner runner = new ImageNetRunner(config){
+        config.setTempFolder(TEMP_PATH);
+        config.setEpoch(10);
 
-            protected DataSetIterator prepareDataSetIterator(DataSet dataset, ModelType modelType, String saveDataName) {
-                final File saveFolder = new File(this.conf.getTempFolder() + File.separator + "minibatches" + File.separator + saveDataName);
-                System.out.println(saveFolder.getAbsolutePath());
-                return new ExistingMiniBatchDataSetIterator(saveFolder, saveDataName + "-%d.bin");
-            }
-            
-        };
-        runner.trainModel(model, new DummyDataSet());
+        final ModelBuilder modelBuilder = new ModelBuilderImpl(config);
+
+        NeuralNetModel model = modelBuilder.createModel(
+                ModelType.RESNET50,
+                new DummyDataSet()
+        );
+
+        final ImageNetTrainer trainer = new ImageNetTrainer(config);
+
+        DataSetIterator testIterator = new ExistingMiniBatchDataSetIterator(
+                new File(config.getTempFolder() + "/test/test"),
+                "test-%d.bin"
+        );
+
+        DataSetIterator trainIterator = new ExistingMiniBatchDataSetIterator(
+                new File(config.getTempFolder() + "/test/train"),
+                "train-%d.bin"
+        );
+
+        trainer.trainModel(
+                model,
+                testIterator,
+                trainIterator,
+                new DummyDataSet().getLabels()
+        );
+
     }
 
 }
@@ -61,13 +79,13 @@ class DummyDataSet implements DataSet {
     public List<Label> getLabels() {
         return Arrays.asList(
                 new Label[]{
-                    new Label("1"),
-                    new Label("2"),
-                    new Label("3"),
-                    new Label("4"),
-                    new Label("5"),
-                    new Label("6"),
-                    new Label("7")}
+                        new Label("1"),
+                        new Label("2"),
+                        new Label("3"),
+                        new Label("4"),
+                        new Label("5"),
+                        new Label("6"),
+                        new Label("7")}
         );
     }
 
@@ -78,5 +96,4 @@ class DummyDataSet implements DataSet {
     public Map<Label, Integer> getLabelDistribution() {
         return new HashMap<>();
     }
-
 }

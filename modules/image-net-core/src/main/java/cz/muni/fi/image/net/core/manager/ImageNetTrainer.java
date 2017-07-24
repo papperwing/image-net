@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -84,6 +85,20 @@ public class ImageNetTrainer {
                 "test"
         );
 
+        return trainModel(
+                model,
+                testIterator,
+                trainIterator,
+                dataset.getLabels()
+        );
+    }
+
+    public NeuralNetModel trainModel(
+            NeuralNetModel model,
+            DataSetIterator testIterator,
+            DataSetIterator trainIterator,
+            List<Label> labels
+    ) {
         setupStatInterface(model.getModel());
 
         final EarlyStoppingResult<Model> result;
@@ -103,7 +118,8 @@ public class ImageNetTrainer {
             );
         }
 
-        return new NeuralNetModel(result.getBestModel(), dataset.getLabels(), ModelType.VGG16);
+        return new NeuralNetModel(result.getBestModel(), labels, ModelType.VGG16);
+
     }
 
     private void setupStatInterface(
