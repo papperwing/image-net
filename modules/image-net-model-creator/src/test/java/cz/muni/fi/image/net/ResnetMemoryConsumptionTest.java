@@ -43,7 +43,7 @@ public class ResnetMemoryConsumptionTest {
                 new DummyDataSet()
         );
 
-        final ImageNetTrainer trainer = new ImageNetTrainer(config);
+        final TestTrainer trainer = new TestTrainer(config);
 
         DataSetIterator testIterator = new ExistingMiniBatchDataSetIterator(
                 new File(config.getTempFolder() + "/test/test"),
@@ -64,6 +64,28 @@ public class ResnetMemoryConsumptionTest {
 
     }
 
+}
+
+class TestTrainer extends ImageNetTrainer {
+
+    public TestTrainer(Configuration conf) {
+        super(conf);
+    }
+
+    @Override
+    public NeuralNetModel trainModel(
+            NeuralNetModel model,
+            DataSetIterator testIterator,
+            DataSetIterator trainIterator,
+            List<Label> labels
+    ) {
+        return super.trainModel(
+                model,
+                testIterator,
+                trainIterator,
+                labels
+        );
+    }
 }
 
 class DummyDataSet implements DataSet {

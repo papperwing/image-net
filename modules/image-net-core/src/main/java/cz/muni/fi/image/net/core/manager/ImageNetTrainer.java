@@ -93,7 +93,7 @@ public class ImageNetTrainer {
         );
     }
 
-    public NeuralNetModel trainModel(
+    protected NeuralNetModel trainModel(
             NeuralNetModel model,
             DataSetIterator testIterator,
             DataSetIterator trainIterator,
