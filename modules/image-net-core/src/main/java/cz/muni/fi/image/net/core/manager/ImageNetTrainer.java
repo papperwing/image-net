@@ -126,7 +126,7 @@ public class ImageNetTrainer {
             Model model
     ) {
 
-        StatsStorage store = new J7FileStatsStorage(new File(this.conf.getImageDownloadFolder() + "/../storage_file"));
+        StatsStorage store = new J7FileStatsStorage(new File(this.conf.getTempFolder() + "/model/storage_file"));
 
         model.setListeners(new J7StatsListener(store), new ScoreIterationListener(1));
     }

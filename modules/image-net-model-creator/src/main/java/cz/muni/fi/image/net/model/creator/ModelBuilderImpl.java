@@ -154,7 +154,7 @@ public class ModelBuilderImpl implements ModelBuilder {
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                    .updater(Updater.SGD)
+                    .updater(Updater.NESTEROVS)
                     .seed(this.config.getSeed())
                     .build();
 
