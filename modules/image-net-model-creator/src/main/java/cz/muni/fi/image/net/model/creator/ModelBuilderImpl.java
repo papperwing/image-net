@@ -23,6 +23,7 @@ import org.deeplearning4j.nn.transferlearning.TransferLearning;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
+import org.deeplearning4j.zoo.model.LeNet;
 import org.deeplearning4j.zoo.model.ResNet50;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
@@ -47,9 +48,9 @@ public class ModelBuilderImpl implements ModelBuilder {
     public NeuralNetModel createModel(ModelType modelType, DataSet dataSet) {
         switch (modelType) {
             /*case VGG16:
-                return createVggModel(dataSet);
+                return createVggModel(dataSet);*/
             case LENET:
-                return createLeNetModel(dataSet);*/
+                return createLeNetModel(dataSet);
             case RESNET50:
                 return createResnet50(dataSet);
         }
@@ -106,41 +107,55 @@ public class ModelBuilderImpl implements ModelBuilder {
             logger.error("Invalid rights.", ex);
         }
         return null;//replace with custom exception
-    }
+    }*/
     
     public NeuralNetModel createLeNetModel(DataSet dataSet) {
+        ZooModel zooModel = new LeNet(
+                dataSet.getLabels().size(),
+                new Random().nextLong(),
+                1,
+                WorkspaceMode.SEPARATE
+        );
         try {
-            int numClasses = dataSet.getLabels().size();
-            ComputationGraph model = KerasModelImport.importKerasModelAndWeights("/home/jpeschel/images/googlenet/googlenet_architecture.json", "/home/jpeschel/images/googlenet/googlenet_weights.h5");
-            
+            ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.MNIST);
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                    .updater(Updater.NESTEROVS)
+                    .updater(Updater.SGD)
                     .seed(this.config.getSeed())
                     .build();
-            
-            ComputationGraph transferedModel = new TransferLearning.GraphBuilder(model)
+
+            ComputationGraph model = new TransferLearning.GraphBuilder(zooModelOriginal)
+                    .setFeatureExtractor("flatten_3")
                     .fineTuneConfiguration(fineTuneConf)
-                    .setFeatureExtractor(featureExtractionLayer) //the specified layer and below are "frozen"
-                    .removeVertexKeepConnections("predictions") //replace the functionality of the final vertex
-                    .addLayer("predictions",
+                    .removeVertexKeepConnections("fc1000")
+                    .addLayer("nonlinearity",
+                            new DenseLayer.Builder()
+                                    .nIn(2048)
+                                    .nOut(1024)
+                                    .activation(Activation.RELU)
+                                    .weightInit(WeightInit.DISTRIBUTION).build(),
+                            "flatten_3"
+                    )
+                    .addLayer("fc1000",
                             new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
-                            .nIn(4096).nOut(numClasses)
-                            .weightInit(WeightInit.DISTRIBUTION)
-                            .dist(new NormalDistribution(0, 0.2 * (2.0 / (4096 + numClasses)))) //This weight init dist gave better results than Xavier
-                            .activation(Activation.SIGMOID).build(),
-                            "fc2")
+                                    .nIn(1024)
+                                    .nOut(dataSet.getLabels().size())
+                                    .activation(Activation.SIGMOID)
+                                    .weightInit(WeightInit.DISTRIBUTION).build(),
+                            "nonlinearity"
+                    )
+                    .setOutputs("fc1000")
                     .setWorkspaceMode(WorkspaceMode.SEPARATE)
                     .build();
-            logger.info(transferedModel.summary());
-            
-            return new NeuralNetModel(model, dataSet.getLabels(), ModelType.LENET);
-        } catch (IOException | UnsupportedKerasConfigurationException | InvalidKerasConfigurationException ex) {
-            logger.error("Unable to load model", ex);
+
+
+            logger.info("New model:\n" + zooModelOriginal.summary());
+            return new NeuralNetModel(model, dataSet.getLabels(), ModelType.RESNET50);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Model weights was not loaded", ex);
         }
-        return null;
-    }*/
+    }
     
     public NeuralNetModel createResnet50(DataSet dataSet) {
         ZooModel zooModel = new ResNet50(
