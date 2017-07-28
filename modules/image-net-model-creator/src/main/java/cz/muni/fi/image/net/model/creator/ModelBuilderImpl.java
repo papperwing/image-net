@@ -4,40 +4,44 @@ import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.NeuralNetModel;
+
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
-import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
-import org.deeplearning4j.nn.modelimport.keras.InvalidKerasConfigurationException;
-import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
-import org.deeplearning4j.nn.modelimport.keras.UnsupportedKerasConfigurationException;
-import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModelHelper;
-import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
+import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.transferlearning.FineTuneConfiguration;
 import org.deeplearning4j.nn.transferlearning.TransferLearning;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
+import org.deeplearning4j.zoo.model.InceptionResNetV1;
 import org.deeplearning4j.zoo.model.LeNet;
 import org.deeplearning4j.zoo.model.ResNet50;
+import org.deeplearning4j.zoo.model.VGG16;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ModelBuilderImpl implements ModelBuilder {
-    
+
+    Map<String, String> extractionNames;
+
     Logger logger = LoggerFactory.getLogger(ModelBuilderImpl.class);
     Configuration config;
-    private static final String featureExtractionLayer = "fc1";
-    
+
     public ModelBuilderImpl(Configuration config) {
         this.config = config;
+        extractionNames = new HashMap<>();
+        extractionNames.put(ModelType.RESNET50.toString() + PretrainedType.IMAGENET.toString(), "flatten_3");
     }
 
     /**
@@ -57,58 +61,6 @@ public class ModelBuilderImpl implements ModelBuilder {
         throw new IllegalArgumentException("Unsuported model type selected.");
     }
 
-    //TODO replace bellow with zoo implementation
-    /*private NeuralNetModel createVggModel(DataSet dataSet) {
-        int numClasses = dataSet.getLabels().size();
-        try {
-            TrainedModelHelper modelImportHelper = new TrainedModelHelper(TrainedModels.VGG16);
-            logger.info("\n\nLoading org.deeplearning4j.transferlearning.vgg16...\n\n");
-            ComputationGraph vgg16 = modelImportHelper.loadModel();
-            logger.info(vgg16.summary());
-            logger.debug("Number of elements: " + vgg16.params().lengthLong());
-
-            //Decide on a fine tune configuration to use.
-            //In cases where there already exists a setting the fine tune setting will
-            //  override the setting for all layers that are not "frozen".
-            FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
-                    .learningRate(this.config.getLearningRate())
-                    .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                    .updater(Updater.NESTEROVS)
-                    .seed(this.config.getSeed())
-                    .build();
-
-            //Construct a new model with the intended architecture and print summary
-            ComputationGraph vgg16Transfer = new TransferLearning.GraphBuilder(vgg16)
-                    .fineTuneConfiguration(fineTuneConf)
-                    .setFeatureExtractor(featureExtractionLayer) //the specified layer and below are "frozen"
-                    .removeVertexKeepConnections("predictions") //replace the functionality of the final vertex
-                    .addLayer("predictions",
-                            new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
-                            .nIn(4096).nOut(numClasses)
-                            .weightInit(WeightInit.DISTRIBUTION)
-                            .dist(new NormalDistribution(0, 0.2 * (2.0 / (4096 + numClasses)))) //This weight init dist gave better results than Xavier
-                            .activation(Activation.SIGMOID).build(),
-                            "fc2")
-                    .setWorkspaceMode(WorkspaceMode.SEPARATE)
-                    .build();
-            logger.info(vgg16Transfer.summary());
-            logger.debug("Number of elements: " + vgg16Transfer.params().lengthLong());
-            
-            return new NeuralNetModel(
-                    vgg16Transfer,
-                    dataSet.getLabels(),
-                    ModelType.VGG16
-            );
-        } catch (InvalidKerasConfigurationException ex) {
-            logger.error("Invalid network configuration.", ex);
-        } catch (UnsupportedKerasConfigurationException ex) {
-            logger.error("Unsuported network configuration.", ex);
-        } catch (IOException ex) {
-            logger.error("Invalid rights.", ex);
-        }
-        return null;//replace with custom exception
-    }*/
-    
     public NeuralNetModel createLeNetModel(DataSet dataSet) {
         ZooModel zooModel = new LeNet(
                 dataSet.getLabels().size(),
@@ -118,10 +70,11 @@ public class ModelBuilderImpl implements ModelBuilder {
         );
         try {
             ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.MNIST);
+
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                    .updater(Updater.SGD)
+                    .updater(Updater.NESTEROVS)
                     .seed(this.config.getSeed())
                     .build();
 
@@ -156,16 +109,14 @@ public class ModelBuilderImpl implements ModelBuilder {
             throw new IllegalStateException("Model weights was not loaded", ex);
         }
     }
-    
+
     public NeuralNetModel createResnet50(DataSet dataSet) {
-        ZooModel zooModel = new ResNet50(
-                dataSet.getLabels().size(),
-                new Random().nextLong(),
-                1,
-                WorkspaceMode.SEPARATE
-        );
+        ZooModel zooModel = getZooModel(ModelType.RESNET50, dataSet.getLabels().size());
         try {
-            ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.IMAGENET);
+            ComputationGraph zooModelOriginal =
+                    (ComputationGraph) zooModel.initPretrained(
+                            getAvailablePretrainedType(modelType)
+                    );
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -179,10 +130,10 @@ public class ModelBuilderImpl implements ModelBuilder {
                     .removeVertexKeepConnections("fc1000")
                     .addLayer("nonlinearity",
                             new DenseLayer.Builder()
-                            .nIn(2048)
-                            .nOut(1024)
-                            .activation(Activation.RELU)
-                            .weightInit(WeightInit.DISTRIBUTION).build(),
+                                    .nIn(2048)
+                                    .nOut(1024)
+                                    .activation(Activation.RELU)
+                                    .weightInit(WeightInit.DISTRIBUTION).build(),
                             "flatten_3"
                     )
                     .addLayer("fc1000",
@@ -193,7 +144,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                                     .weightInit(WeightInit.DISTRIBUTION).build(),
                             "nonlinearity"
                     )
-                    //.setOutputs("fc1000") uncomment after bugfix
+                    .setOutputs("fc1000")
                     .setWorkspaceMode(WorkspaceMode.SEPARATE)
                     .build();
 
@@ -203,5 +154,104 @@ public class ModelBuilderImpl implements ModelBuilder {
             throw new IllegalStateException("Model weights was not loaded", ex);
         }
     }
-    
+
+    private Model getFineTunedModel(
+            ZooModel zooModel,
+            ModelType modelType,
+            int outputSize
+    ) throws IOException {
+        ComputationGraph originalModel =
+                (ComputationGraph) zooModel.initPretrained(
+                        getAvailablePretrainedType(modelType)
+                );
+        FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
+                .learningRate(this.config.getLearningRate())
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                .updater(Updater.NESTEROVS)
+                .seed(this.config.getSeed())
+                .build();
+
+        ComputationGraph model = new TransferLearning.GraphBuilder(originalModel)
+                .setFeatureExtractor(
+                        getFeatureExtractionLayer(
+                                modelType,
+                                getAvailablePretrainedType(modelType)
+                        )
+                )
+                .fineTuneConfiguration(fineTuneConf)
+                .removeVertexKeepConnections("fc1000")
+                .addLayer("nonlinearity",
+                        new DenseLayer.Builder()
+                                .nIn(2048)
+                                .nOut(1024)
+                                .activation(Activation.RELU)
+                                .weightInit(WeightInit.DISTRIBUTION).build(),
+                        "flatten_3"
+                )
+                .addLayer("fc1000",
+                        new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
+                                .nIn(1024)
+                                .nOut(outputSize)
+                                .activation(Activation.SIGMOID)
+                                .weightInit(WeightInit.DISTRIBUTION).build(),
+                        "nonlinearity"
+                )
+                .setOutputs("fc1000")
+                .setWorkspaceMode(WorkspaceMode.SEPARATE)
+                .build();
+
+        logger.info("New model:\n" + originalModel.summary());
+        return model;
+    }
+
+    private String getFeatureExtractionLayer(ModelType modelType, PretrainedType pretrainedType) {
+        return extractionNames.get(modelType.toString() + pretrainedType.toString());
+    }
+
+    private ZooModel getZooModel(ModelType modelType, int outputSize) {
+        switch (modelType) {
+            case RESNET50:
+                return new ResNet50(
+                        outputSize,
+                        new Random().nextLong(),
+                        1,
+                        WorkspaceMode.SEPARATE
+                );
+            case LENET:
+                return new LeNet(
+                        outputSize,
+                        new Random().nextLong(),
+                        1,
+                        WorkspaceMode.SEPARATE
+                );
+            case VGG16:
+                return new VGG16(
+                        outputSize,
+                        new Random().nextLong(),
+                        1,
+                        WorkspaceMode.SEPARATE
+                );
+            case INCEPTIONV1:
+                return new InceptionResNetV1(
+                        outputSize,
+                        new Random().nextLong(),
+                        1,
+                        WorkspaceMode.SEPARATE
+                );
+        }
+        throw new IllegalArgumentException("Selected model type isn't available");
+    }
+
+
+    private PretrainedType getAvailablePretrainedType(ModelType type) {
+        switch (type) {
+            case RESNET50:
+                return PretrainedType.MNIST;
+            case LENET:
+                return PretrainedType.MNIST;
+        }
+        throw new IllegalArgumentException("Selected model type isn't available");
+
+    }
+
 }

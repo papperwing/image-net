@@ -11,6 +11,7 @@ import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
 import org.nd4j.linalg.dataset.ExistingMiniBatchDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,7 +109,9 @@ public class DataSetProcessor {
                 )
         );
 
-        dataIter.setPreProcessor(new ImageNormalizer(modelType).getDataNormalization());
+        DataNormalization normalization = new ImageNormalizer(modelType).getDataNormalization();
+        normalization.fit(dataIter);
+        dataIter.setPreProcessor(normalization);
 
         return dataIter;
     }
@@ -147,7 +150,10 @@ public class DataSetProcessor {
                 saveFolder,
                 saveDataName + "-%d.bin"
         );
-        iter.setPreProcessor(new ImageNormalizer(modelType).getDataNormalization());
+
+        DataNormalization normalization = new ImageNormalizer(modelType).getDataNormalization();
+        normalization.fit(iter);
+        iter.setPreProcessor(normalization);
         return iter;
     }
 }
