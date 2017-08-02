@@ -11,7 +11,9 @@ import java.util.Random;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
+import org.deeplearning4j.nn.conf.distribution.Distribution;
 import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
+import org.deeplearning4j.nn.conf.distribution.UniformDistribution;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
@@ -87,12 +89,26 @@ public class ModelBuilderImpl implements ModelBuilder {
                         .nIn(4096)
                         .nOut(2048)
                         .activation(Activation.RELU)
-                        .weightInit(WeightInit.DISTRIBUTION).build())//nonlinearity layer
+                        .weightInit(WeightInit.DISTRIBUTION)
+                        .dist(
+                                new NormalDistribution(
+                                        0,
+                                        0.2*(2.0/(4096+dataSet.getLabels().size()))
+                                )
+                        )
+                        .build())//nonlinearity layer
                 .addLayer(new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
                         .nIn(2048)
                         .nOut(dataSet.getLabels().size())
                         .activation(Activation.SIGMOID)
-                        .weightInit(WeightInit.DISTRIBUTION).build())
+                        .weightInit(WeightInit.DISTRIBUTION)
+                        .dist(
+                                new NormalDistribution(
+                                        0,
+                                        0.2*(2.0/(2048+dataSet.getLabels().size()))
+                                )
+                        )
+                        .build())//nonlinearity layer
                 .build();
 
 
