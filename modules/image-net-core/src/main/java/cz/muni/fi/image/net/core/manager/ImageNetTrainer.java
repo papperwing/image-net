@@ -10,6 +10,7 @@ import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.saver.LocalFileGraphSaver;
+import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculator;
 import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculatorCG;
 import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationCondition;
 import org.deeplearning4j.earlystopping.termination.MaxTimeIterationTerminationCondition;
@@ -174,7 +175,7 @@ public class ImageNetTrainer {
             final EarlyStoppingConfiguration.Builder<MultiLayerNetwork> builder = new EarlyStoppingConfiguration.Builder()
                     .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
                     .modelSaver(new LocalFileGraphSaver(tempDirLoc))
-                    .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true))
+                    .scoreCalculator(new DataSetLossCalculator(testDataSet, true))
                     .evaluateEveryNEpochs(1);
 
             if (this.conf.isTimed()) {

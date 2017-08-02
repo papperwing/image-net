@@ -26,6 +26,7 @@ import org.deeplearning4j.nn.transferlearning.TransferLearning;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
+import org.deeplearning4j.zoo.model.AlexNet;
 import org.deeplearning4j.zoo.model.LeNet;
 import org.deeplearning4j.zoo.model.ResNet50;
 import org.nd4j.linalg.activations.Activation;
@@ -56,8 +57,47 @@ public class ModelBuilderImpl implements ModelBuilder {
                 return createLeNetModel(dataSet);
             case RESNET50:
                 return createResnet50(dataSet);
+            case ALEXNET:
+                return createAlexNet(dataSet);
         }
         throw new IllegalArgumentException("Unsuported model type selected.");
+    }
+
+    private NeuralNetModel createAlexNet(DataSet dataSet) {
+        ZooModel zooModel = new AlexNet(
+                dataSet.getLabels().size(),
+                new Random().nextLong(),
+                1,
+                WorkspaceMode.SEPARATE
+        );
+
+        MultiLayerNetwork zooModelOriginal = (MultiLayerNetwork) zooModel.init();
+        FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
+                .learningRate(this.config.getLearningRate())
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                .updater(Updater.SGD)
+                .seed(this.config.getSeed())
+                .build();
+
+        MultiLayerNetwork model = new TransferLearning.Builder(zooModelOriginal)
+                .setFeatureExtractor(9)
+                .fineTuneConfiguration(fineTuneConf)
+                .removeOutputLayer()
+                .addLayer(new DenseLayer.Builder()
+                        .nIn(4096)
+                        .nOut(2048)
+                        .activation(Activation.RELU)
+                        .weightInit(WeightInit.DISTRIBUTION).build())//nonlinearity layer
+                .addLayer(new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
+                        .nIn(2048)
+                        .nOut(dataSet.getLabels().size())
+                        .activation(Activation.SIGMOID)
+                        .weightInit(WeightInit.DISTRIBUTION).build())
+                .build();
+
+
+        logger.info("New model:\n" + model.summary());
+        return new NeuralNetModel(model, dataSet.getLabels(), ModelType.RESNET50);
     }
 
     //TODO replace bellow with zoo implementation
