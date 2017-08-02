@@ -192,12 +192,26 @@ public class ModelBuilderImpl implements ModelBuilder {
                             .nIn(500)
                             .nOut(250)
                             .activation(Activation.RELU)
-                            .weightInit(WeightInit.DISTRIBUTION).build())//nonlinearity layer
+                            .weightInit(WeightInit.DISTRIBUTION)
+                            .dist(
+                                    new NormalDistribution(
+                                            0,
+                                            0.2*(2.0/(500+dataSet.getLabels().size()))
+                                    )
+                            )
+                            .build())//nonlinearity layer
                     .addLayer(new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
                             .nIn(250)
                             .nOut(dataSet.getLabels().size())
                             .activation(Activation.SIGMOID)
-                            .weightInit(WeightInit.DISTRIBUTION).build())
+                            .weightInit(WeightInit.DISTRIBUTION)
+                            .dist(
+                                    new NormalDistribution(
+                                            0,
+                                            0.2*(2.0/(250+dataSet.getLabels().size()))
+                                    )
+                            )
+                            .build())
                     .build();
 
 
@@ -233,7 +247,14 @@ public class ModelBuilderImpl implements ModelBuilder {
                                     .nIn(2048)
                                     .nOut(1024)
                                     .activation(Activation.RELU)
-                                    .weightInit(WeightInit.DISTRIBUTION).build(),
+                                    .weightInit(WeightInit.DISTRIBUTION)
+                                    .dist(
+                                            new NormalDistribution(
+                                                    0,
+                                                    0.2*(2.0/(2048+dataSet.getLabels().size()))
+                                            )
+                                    )
+                                    .build(),
                             "flatten_3"
                     )
                     .addLayer("fc1000",
@@ -241,7 +262,14 @@ public class ModelBuilderImpl implements ModelBuilder {
                                     .nIn(1024)
                                     .nOut(dataSet.getLabels().size())
                                     .activation(Activation.SIGMOID)
-                                    .weightInit(WeightInit.DISTRIBUTION).build(),
+                                    .weightInit(WeightInit.DISTRIBUTION)
+                                    .dist(
+                                            new NormalDistribution(
+                                                    0,
+                                                    0.2*(2.0/(1024+dataSet.getLabels().size()))
+                                            )
+                                    )
+                                    .build(),
                             "nonlinearity"
                     )
                     .setOutputs("fc1000")
