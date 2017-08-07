@@ -1,5 +1,7 @@
 package cz.muni.fi.image.net.core.objects;
 
+import java.util.Random;
+
 /**
  * @author Jakub Peschel
  */
@@ -120,7 +122,7 @@ public class Configuration {
     /**
      *
      */
-    private int seed = 4;
+    private int seed = new Random().nextInt();
 
     public int getSeed() {
         return seed;

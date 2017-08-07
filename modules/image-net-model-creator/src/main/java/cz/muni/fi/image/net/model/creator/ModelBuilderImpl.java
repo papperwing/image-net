@@ -68,7 +68,7 @@ public class ModelBuilderImpl implements ModelBuilder {
     private NeuralNetModel createAlexNet(DataSet dataSet) {
         ZooModel zooModel = new AlexNet(
                 dataSet.getLabels().size(),
-                new Random().nextLong(),
+                this.config.getSeed(),
                 1,
                 WorkspaceMode.SEPARATE
         );
@@ -171,7 +171,7 @@ public class ModelBuilderImpl implements ModelBuilder {
     public NeuralNetModel createLeNetModel(DataSet dataSet) {
         ZooModel zooModel = new LeNet(
                 dataSet.getLabels().size(),
-                new Random().nextLong(),
+                this.config.getSeed(),
                 1,
                 WorkspaceMode.SEPARATE
         );
@@ -225,7 +225,7 @@ public class ModelBuilderImpl implements ModelBuilder {
     public NeuralNetModel createResnet50(DataSet dataSet) {
         ZooModel zooModel = new ResNet50(
                 dataSet.getLabels().size(),
-                new Random().nextLong(),
+                this.config.getSeed(),
                 1,
                 WorkspaceMode.SEPARATE
         );
