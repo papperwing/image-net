@@ -2,6 +2,7 @@ package cz.muni.fi.image.net.core.data.normalization;
 
 import cz.muni.fi.image.net.core.enums.ModelType;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
+import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.linalg.dataset.api.preprocessor.VGG16ImagePreProcessor;
 
 /**
@@ -29,11 +30,13 @@ public class ImageNormalizer {
     public DataNormalization getDataNormalization(ModelType modelType) {
         switch (modelType) {
             case RESNET50:
-                return new VGG16ImagePreProcessor();
+                return new ImagePreProcessingScaler(-1,1);
             case VGG16:
                 return new VGG16ImagePreProcessor();
             case LENET:
                 return new VGG16ImagePreProcessor();
+            case ALEXNET:
+                return new ImagePreProcessingScaler(-1,1);
             default:
                 return new VGG16ImagePreProcessor();
         }
