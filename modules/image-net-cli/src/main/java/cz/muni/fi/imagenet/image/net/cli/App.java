@@ -27,6 +27,7 @@ public class App {
         try {
             parse = Args.parse(ArgLoader.class, args);
         } catch (IllegalArgumentException e) {
+            logger.error("Error:", e);
             Args.usage(ArgLoader.class);
             System.exit(1);
             return;
@@ -114,7 +115,7 @@ public class App {
                 ArgLoader.modelName,
                 dataset,
                 7,
-                ArgLoader.model != null ? ArgLoader.model : ModelType.RESNET50
+                ArgLoader.model != null ? ModelType.valueOf(ArgLoader.model) : ModelType.RESNET50
         );
     }
 
@@ -163,8 +164,8 @@ public class App {
                 new File(modelLocation1),
                 dataset1,
                 labelNameList1,
-                ArgLoader.model != null ? ArgLoader.model : ModelType.RESNET50);
-        logger.info(evaluate);
+                ArgLoader.model != null ? ModelType.valueOf(ArgLoader.model) : ModelType.RESNET50);
+        logger.info("\n" + evaluate);
     }
 
     private static void continueTraining(ImageNetAPI api) throws IllegalArgumentException, IOException  {
@@ -196,7 +197,7 @@ public class App {
                 new File(modelLocation1),
                 dataset,
                 7,
-                ArgLoader.model != null ? ArgLoader.model : ModelType.RESNET50
+                ArgLoader.model != null ? ModelType.valueOf(ArgLoader.model) : ModelType.RESNET50
         );
     }
 

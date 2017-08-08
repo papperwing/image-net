@@ -31,6 +31,7 @@ import org.deeplearning4j.zoo.ZooModel;
 import org.deeplearning4j.zoo.model.AlexNet;
 import org.deeplearning4j.zoo.model.LeNet;
 import org.deeplearning4j.zoo.model.ResNet50;
+import org.deeplearning4j.zoo.model.VGG16;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
@@ -82,7 +83,6 @@ public class ModelBuilderImpl implements ModelBuilder {
                 .build();
 
         MultiLayerNetwork model = new TransferLearning.Builder(zooModelOriginal)
-                .setFeatureExtractor(9)
                 .fineTuneConfiguration(fineTuneConf)
                 .removeOutputLayer()
                 .addLayer(new DenseLayer.Builder()

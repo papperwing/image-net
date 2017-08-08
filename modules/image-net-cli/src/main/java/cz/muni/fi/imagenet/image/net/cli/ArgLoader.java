@@ -13,8 +13,9 @@ public class ArgLoader {
     public static String datasetLoc;
     @Argument(alias = "imageLoc", description="Location of downloaded images", required = false)
     public static String imageLoc;
+
     @Argument(alias = "type", description="Type of model for transfer learning", required = false)
-    public static ModelType model;
+    public static String model;
     @Argument(alias = "name", description="Name of stored model", required = false)
     public static String modelName;
     @Argument(alias = "time", description="Time for computation in minutes", required = false)

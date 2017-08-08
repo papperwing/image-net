@@ -18,13 +18,13 @@ public class NeuralNetModel {
     private final Model model;
 
     private final List<Label> labels;
-    
+
     private final ModelType type;
 
     private String description;
 
     private boolean trained;
-    
+
 
     public NeuralNetModel(final Model model, List<Label> labelList, ModelType type) {
         this.trained = false;
@@ -35,7 +35,11 @@ public class NeuralNetModel {
 
     public NeuralNetModel(final File savedModel, List<Label> labelList, ModelType type) throws IOException {
         this.trained = false;
-        this.model = ModelSerializer.restoreComputationGraph(savedModel);
+        if(isModelCG(type)) {
+            this.model = ModelSerializer.restoreComputationGraph(savedModel);
+        }else{
+            this.model = ModelSerializer.restoreMultiLayerNetwork(savedModel);
+        }
         this.labels = labelList;
         this.type = type;
     }
@@ -59,7 +63,7 @@ public class NeuralNetModel {
     public File toFile(String storeFileLocation) throws IOException {
         String fileNameWithExtension = storeFileLocation + ".zip";
         File saveFile = new File(fileNameWithExtension);
-        ModelSerializer.writeModel(model, saveFile, trained);//nechceme ukládat nenaučený model prozatím
+        ModelSerializer.writeModel(model, saveFile, trained);
         return saveFile;
     }
 
@@ -74,5 +78,20 @@ public class NeuralNetModel {
     public ModelType getType() {
         return type;
     }
-    
+
+    private Boolean isModelCG(ModelType type){
+        switch(type){
+            case RESNET50:
+                return true;
+            case ALEXNET:
+                return false;
+            case LENET:
+                return false;
+            case VGG16:
+                return true;
+            default:
+                throw new IllegalStateException("Unknown model type.");
+        }
+    }
+
 }

@@ -29,7 +29,7 @@ public class ImageNetEvaluator {
         DataSetProcessor processor = new DataSetProcessor(this.conf, modelWrapper.getType());
         DataSetIterator iter = processor.presaveDataSetIterator(
                 processor.prepareDataSetIterator(dataSet),
-                ModelType.LENET,
+                modelWrapper.getType(),
                 "evaluation"
         );
 
@@ -37,6 +37,8 @@ public class ImageNetEvaluator {
                 dataSet.getLabels().size(),
                 null
         );
+
+        evaluationBinary.setLabelNames(iter.getLabels());
 
         Model model = modelWrapper.getModel();
 
