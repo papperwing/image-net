@@ -80,32 +80,21 @@ public class ModelBuilderImpl implements ModelBuilder {
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(Updater.NESTEROVS)
                 .seed(this.config.getSeed())
+                .dropOut(0.5)
                 .build();
 
         MultiLayerNetwork model = new TransferLearning.Builder(zooModelOriginal)
                 .fineTuneConfiguration(fineTuneConf)
-                .removeOutputLayer()
-                .addLayer(new DenseLayer.Builder()
-                        .nIn(4096)
-                        .nOut(2048)
-                        .activation(Activation.RELU)
-                        .weightInit(WeightInit.DISTRIBUTION)
-                        .dist(
-                                new NormalDistribution(
-                                        0,
-                                        0.2*(2.0/(4096+dataSet.getLabels().size()))
-                                )
-                        )
-                        .build())//nonlinearity layer
+                .removeLayersFromOutput(2)
                 .addLayer(new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
-                        .nIn(2048)
+                        .nIn(4096)
                         .nOut(dataSet.getLabels().size())
                         .activation(Activation.SIGMOID)
                         .weightInit(WeightInit.DISTRIBUTION)
                         .dist(
                                 new NormalDistribution(
                                         0,
-                                        0.2*(2.0/(2048+dataSet.getLabels().size()))
+                                        0.2*(2.0/(4096+dataSet.getLabels().size()))
                                 )
                         )
                         .build())//nonlinearity layer
