@@ -6,6 +6,8 @@ import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.NeuralNetModel;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -40,8 +42,7 @@ import org.slf4j.LoggerFactory;
 public class ModelBuilderImpl implements ModelBuilder {
 
     Logger logger = LoggerFactory.getLogger(ModelBuilderImpl.class);
-    Configuration config;
-    private static final String featureExtractionLayer = "fc1";
+    private final Configuration config;
 
     public ModelBuilderImpl(Configuration config) {
         this.config = config;
@@ -80,7 +81,9 @@ public class ModelBuilderImpl implements ModelBuilder {
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(Updater.NESTEROVS)
                 .seed(this.config.getSeed())
-                .dropOut(0.5)
+                .dropOut(this.config.getDropout())
+                .l1(this.config.getL1())
+                .l2(this.config.getL2())
                 .build();
 
         MultiLayerNetwork model = new TransferLearning.Builder(zooModelOriginal)
@@ -104,58 +107,6 @@ public class ModelBuilderImpl implements ModelBuilder {
         logger.info("New model:\n" + model.summary());
         return new NeuralNetModel(model, dataSet.getLabels(), ModelType.RESNET50);
     }
-
-    //TODO replace bellow with zoo implementation
-    /*private NeuralNetModel createVggModel(DataSet dataSet) {
-        int numClasses = dataSet.getLabels().size();
-        try {
-            TrainedModelHelper modelImportHelper = new TrainedModelHelper(TrainedModels.VGG16);
-            logger.info("\n\nLoading org.deeplearning4j.transferlearning.vgg16...\n\n");
-            ComputationGraph vgg16 = modelImportHelper.loadModel();
-            logger.info(vgg16.summary());
-            logger.debug("Number of elements: " + vgg16.params().lengthLong());
-
-            //Decide on a fine tune configuration to use.
-            //In cases where there already exists a setting the fine tune setting will
-            //  override the setting for all layers that are not "frozen".
-            FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
-                    .learningRate(this.config.getLearningRate())
-                    .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                    .updater(Updater.NESTEROVS)
-                    .seed(this.config.getSeed())
-                    .build();
-
-            //Construct a new model with the intended architecture and print summary
-            ComputationGraph vgg16Transfer = new TransferLearning.GraphBuilder(vgg16)
-                    .fineTuneConfiguration(fineTuneConf)
-                    .setFeatureExtractor(featureExtractionLayer) //the specified layer and below are "frozen"
-                    .removeVertexKeepConnections("predictions") //replace the functionality of the final vertex
-                    .addLayer("predictions",
-                            new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
-                            .nIn(4096).nOut(numClasses)
-                            .weightInit(WeightInit.DISTRIBUTION)
-                            .dist(new NormalDistribution(0, 0.2 * (2.0 / (4096 + numClasses)))) //This weight init dist gave better results than Xavier
-                            .activation(Activation.SIGMOID).build(),
-                            "fc2")
-                    .setWorkspaceMode(WorkspaceMode.SEPARATE)
-                    .build();
-            logger.info(vgg16Transfer.summary());
-            logger.debug("Number of elements: " + vgg16Transfer.params().lengthLong());
-            
-            return new NeuralNetModel(
-                    vgg16Transfer,
-                    dataSet.getLabels(),
-                    ModelType.VGG16
-            );
-        } catch (InvalidKerasConfigurationException ex) {
-            logger.error("Invalid network configuration.", ex);
-        } catch (UnsupportedKerasConfigurationException ex) {
-            logger.error("Unsuported network configuration.", ex);
-        } catch (IOException ex) {
-            logger.error("Invalid rights.", ex);
-        }
-        return null;//replace with custom exception
-    }*/
 
     public NeuralNetModel createLeNetModel(DataSet dataSet) {
         ZooModel zooModel = new LeNet(

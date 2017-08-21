@@ -40,4 +40,10 @@ public class ArgLoader {
     public static Integer gpuCount;
     @Argument(alias = "batchSize", description="batch size", required = false)
     public static Integer batchSize;
+    @Argument(alias = "l1", description="l1", required = false)
+    public static Double l1;
+    @Argument(alias = "l2", description="l2", required = false)
+    public static Double l2;
+    @Argument(alias = "dropout", description="dropout", required = false)
+    public static Double dropout;
 }

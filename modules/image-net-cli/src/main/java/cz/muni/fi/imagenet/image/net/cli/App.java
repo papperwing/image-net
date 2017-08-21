@@ -66,7 +66,19 @@ public class App {
         if (ArgLoader.batchSize != null) {
             config.setBatchSize(ArgLoader.batchSize);
         }
-        
+
+        if (ArgLoader.l1 != null) {
+            config.setL1(ArgLoader.l1);
+        }
+
+        if (ArgLoader.l2 != null) {
+            config.setL2(ArgLoader.l2);
+        }
+
+        if (ArgLoader.dropout != null) {
+            config.setDropout(ArgLoader.dropout);
+        }
+
         ImageNetAPI api = new ImageNetAPI(config);
 
         switch (ArgLoader.method) {
