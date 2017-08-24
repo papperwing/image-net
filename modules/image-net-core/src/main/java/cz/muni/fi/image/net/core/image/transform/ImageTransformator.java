@@ -37,7 +37,7 @@ public class ImageTransformator {
             int[] inputShape
     ) {
         if (inputShape.length != 3) {
-            throw new IllegalArgumentException("Expected lenght of inputShape 3 but got: " + inputShape.length);
+            throw new IllegalArgumentException("Expected length of inputShape 3 but got: " + inputShape.length);
         }
         this.inputShape = inputShape;
         this.loader = new NativeImageLoader(

@@ -94,12 +94,13 @@ public class ImageNetClassifier {
         return results;
     }
 
+    //TODO: finish refactor
     private INDArray generateINDArray(
             final File image
     ) throws IOException {
         final NativeImageLoader loader = new NativeImageLoader(224, 224, 3);
         final INDArray imageVector = loader.asMatrix(image);
-        final DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
+        final DataNormalization scaler = new ImagePreProcessingScaler(-1, 1);
         scaler.transform(imageVector);
         return imageVector;
     }

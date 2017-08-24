@@ -124,7 +124,7 @@ public class ImageTransformatorTest {
             }
 
             @Override
-            public int lenght() {
+            public int length() {
                 return 1;
             }
 

@@ -71,7 +71,7 @@ public class ImageNetRecordReader extends BaseRecordReader {
 
     }
 
-    public ImageNetRecordReader(int imageWidth, int imageHeight, int imageChannel, ImageTransform transform, ModelType modelType) {
+    public ImageNetRecordReader(int imageWidth, int imageHeight, int imageChannel, ModelType modelType) {
         this.imageWidth = imageWidth;
         this.imageHeight = imageHeight;
         this.imageChannel = imageChannel;

@@ -46,7 +46,7 @@ class DummyDataSet implements DataSet{
     }
 
     @Override
-    public int lenght() {
+    public int length() {
         return data.size();
     }
 

@@ -6,24 +6,14 @@ import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.NeuralNetModel;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
-import org.deeplearning4j.nn.conf.distribution.Distribution;
 import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
-import org.deeplearning4j.nn.conf.distribution.UniformDistribution;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
-import org.deeplearning4j.nn.modelimport.keras.InvalidKerasConfigurationException;
-import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
-import org.deeplearning4j.nn.modelimport.keras.UnsupportedKerasConfigurationException;
-import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModelHelper;
-import org.deeplearning4j.nn.modelimport.keras.trainedmodels.TrainedModels;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.transferlearning.FineTuneConfiguration;
 import org.deeplearning4j.nn.transferlearning.TransferLearning;
@@ -33,7 +23,6 @@ import org.deeplearning4j.zoo.ZooModel;
 import org.deeplearning4j.zoo.model.AlexNet;
 import org.deeplearning4j.zoo.model.LeNet;
 import org.deeplearning4j.zoo.model.ResNet50;
-import org.deeplearning4j.zoo.model.VGG16;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
@@ -81,31 +70,32 @@ public class ModelBuilderImpl implements ModelBuilder {
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(Updater.NESTEROVS)
                 .seed(this.config.getSeed())
-                .dropOut(this.config.getDropout())
                 .l1(this.config.getL1())
                 .l2(this.config.getL2())
+                .dropOut(this.config.getDropout())
                 .build();
 
         MultiLayerNetwork model = new TransferLearning.Builder(zooModelOriginal)
                 .fineTuneConfiguration(fineTuneConf)
-                .removeLayersFromOutput(2)
+                .removeLayersFromOutput(1)
                 .addLayer(new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
-                        .nIn(4096)
+                        .nIn(2048)
                         .nOut(dataSet.getLabels().size())
                         .activation(Activation.SIGMOID)
                         .weightInit(WeightInit.DISTRIBUTION)
                         .dist(
                                 new NormalDistribution(
                                         0,
-                                        0.2*(2.0/(4096+dataSet.getLabels().size()))
+                                        0.2*(2.0/(2048+dataSet.getLabels().size()))
                                 )
                         )
-                        .build())//nonlinearity layer
+                        .learningRate(this.config.getLearningRate()/10000)
+                        .build())
                 .build();
 
 
         logger.info("New model:\n" + model.summary());
-        return new NeuralNetModel(model, dataSet.getLabels(), ModelType.RESNET50);
+        return new NeuralNetModel(model, dataSet.getLabels(), ModelType.ALEXNET);
     }
 
     public NeuralNetModel createLeNetModel(DataSet dataSet) {
@@ -116,7 +106,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                 WorkspaceMode.SEPARATE
         );
         try {
-            MultiLayerNetwork zooModelOriginal = (MultiLayerNetwork) zooModel.initPretrained(PretrainedType.MNIST);
+            MultiLayerNetwork zooModelOriginal = (MultiLayerNetwork) zooModel.initPretrained(PretrainedType.IMAGENET);
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)

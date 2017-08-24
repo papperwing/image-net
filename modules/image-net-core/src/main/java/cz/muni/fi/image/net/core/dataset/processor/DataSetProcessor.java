@@ -44,51 +44,11 @@ public class DataSetProcessor {
     public DataSetIterator prepareDataSetIterator(
             final DataSet dataset
     ) {
-        final List<Pair<ImageTransform, Double>> pipeline = new LinkedList<>();
-
-        pipeline.add(
-                new Pair(
-                        new ResizeImageTransform(
-                                300,
-                                300
-                        ),
-                        1.0
-                )
-        );
-
-        pipeline.add(
-                new Pair(
-                        new RandomCropTransform(
-                                height,
-                                width
-                        ),
-                        1.0
-                )
-        );
-
-        pipeline.add(
-                new Pair(
-                        new FlipImageTransform(
-                                1
-                        ),
-                        0.5
-                )
-        );
-
-        final ImageTransform combinedTransform = new MultiImageTransform(
-                new ImageTransform[]{
-                        new PipelineImageTransform(
-                                pipeline,
-                                false
-                        )
-                }
-        );
 
         final ImageNetRecordReader recordReader = new ImageNetRecordReader(
                 height,
                 width,
                 channels,
-                combinedTransform,
                 modelType
         );
 

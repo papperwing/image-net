@@ -18,13 +18,13 @@ public class DataSetImpl implements DataSet {
 
     private List<DataSample> dataList;
 
-    private final int dataSetLenght;
+    private final int dataSetLength;
 
     private final List<Label> labels;
 
     public DataSetImpl(final List<DataSample> dataList, List<Label> labels) {
         this.dataList = dataList;
-        this.dataSetLenght = dataList.size();
+        this.dataSetLength = dataList.size();
         this.labels = labels;
         for (DataSample sample : dataList) {
             if (!labels.containsAll(sample.getLabelSet())) {
@@ -37,8 +37,8 @@ public class DataSetImpl implements DataSet {
         return Collections.unmodifiableList(dataList);
     }
 
-    public int lenght() {
-        return this.dataSetLenght;
+    public int length() {
+        return this.dataSetLength;
     }
 
     public List<Label> getLabels() {
@@ -55,9 +55,9 @@ public class DataSetImpl implements DataSet {
 
     public DataSet split(double splitPercentage) {
         validatePecentage(splitPercentage);
-        int splitIndex = (int) Math.ceil(this.dataSetLenght * splitPercentage);
+        int splitIndex = (int) Math.ceil(this.dataSetLength * splitPercentage);
 
-        List<DataSample> splitList = this.dataList.subList(splitIndex, dataSetLenght - 1);
+        List<DataSample> splitList = this.dataList.subList(splitIndex, dataSetLength - 1);
         dataList = this.dataList.subList(0, splitIndex);
         DataSetImpl splitSet = new DataSetImpl(splitList, labels);
 

@@ -155,7 +155,7 @@ public class ImageNetAPI {
      */
     public List<List<String>> classify(String modelLoc, List<String> labelNameList, String... imageURI) throws IOException {
         final ImageNetRunner runner = new ImageNetRunner(config);
-        List<Label> labelList = new ArrayList<Label>();
+        List<Label> labelList = new ArrayList<>();
         for (String labelName : labelNameList) {
             labelList.add(new Label(labelName));
         }

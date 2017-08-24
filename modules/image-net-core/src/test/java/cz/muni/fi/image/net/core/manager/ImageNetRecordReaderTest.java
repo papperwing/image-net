@@ -106,7 +106,7 @@ public class ImageNetRecordReaderTest {
         }
 
         @Override
-        public int lenght() {
+        public int length() {
             return sampleList.size();
         }
 

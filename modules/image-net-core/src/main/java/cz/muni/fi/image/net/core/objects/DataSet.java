@@ -11,7 +11,7 @@ public interface DataSet {
 
     List<DataSample> getData();
     
-    int lenght();
+    int length();
     
     List<Label> getLabels();
     
