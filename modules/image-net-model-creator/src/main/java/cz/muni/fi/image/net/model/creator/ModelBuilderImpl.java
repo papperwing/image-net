@@ -6,8 +6,11 @@ import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.NeuralNetModel;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.LearningRatePolicy;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
@@ -67,6 +70,8 @@ public class ModelBuilderImpl implements ModelBuilder {
         MultiLayerNetwork zooModelOriginal = (MultiLayerNetwork) zooModel.init();
         FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                 .learningRate(this.config.getLearningRate())
+                .learningRatePolicy(LearningRatePolicy.Sigmoid)
+                .lrPolicyDecayRate(0.1)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(Updater.NESTEROVS)
                 .seed(this.config.getSeed())
@@ -89,7 +94,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                                         0.2*(2.0/(2048+dataSet.getLabels().size()))
                                 )
                         )
-                        .learningRate(this.config.getLearningRate()/10000)
+                        .learningRate(this.config.getLearningRate()/1000)
                         .build())
                 .build();
 

@@ -42,7 +42,7 @@ public class ImageNetRecordReaderTest {
     public void tearDown() {
     }
 
-    ImageNetRecordReader instance = new ImageNetRecordReader(0, 0, 0, null, ModelType.RESNET50);
+    ImageNetRecordReader instance = new ImageNetRecordReader(0, 0, 0, ModelType.RESNET50);
 
     /**
      * Test of getLabels method, of class ImageNetRecordReader.
