@@ -2,6 +2,7 @@ package cz.muni.fi.image.net.core.dataset.processor;
 
 import cz.muni.fi.image.net.core.data.normalization.ImageNormalizer;
 import cz.muni.fi.image.net.core.data.sample.processing.ImageNetRecordReader;
+import cz.muni.fi.image.net.core.data.sample.processing.PresavedMiniBatchDataSetIterator;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.enums.ModelType;
@@ -103,9 +104,10 @@ public class DataSetProcessor {
         }
         logger.debug("DataSet presaved");
 
-        DataSetIterator iter = new ExistingMiniBatchDataSetIterator(
+        DataSetIterator iter = new PresavedMiniBatchDataSetIterator(
                 saveFolder,
-                saveDataName + "-%d.bin"
+                saveDataName + "-[0-9]+.bin",
+                true
         );
         iter.setPreProcessor(new ImageNormalizer(modelType).getDataNormalization());
         return iter;

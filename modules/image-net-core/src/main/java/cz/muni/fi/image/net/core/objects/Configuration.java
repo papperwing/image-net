@@ -242,7 +242,7 @@ public class Configuration {
     /**
      *
      */
-    private double dropout = 0.5;
+    private double dropout = 0;
 
     public double getDropout() {
         return dropout;
@@ -280,6 +280,21 @@ public class Configuration {
 
     public void setL2(double l2) {
         this.l2 = l2;
+    }
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="Momentum">
+    /**
+     *
+     */
+    private double momentum = 0;
+
+    public double getMomentum() {
+        return momentum;
+    }
+
+    public void setMomentum(double momentum) {
+        this.momentum = momentum;
     }
     //</editor-fold>
 }

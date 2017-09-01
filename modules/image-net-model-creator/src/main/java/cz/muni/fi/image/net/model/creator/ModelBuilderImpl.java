@@ -27,6 +27,7 @@ import org.deeplearning4j.zoo.model.AlexNet;
 import org.deeplearning4j.zoo.model.LeNet;
 import org.deeplearning4j.zoo.model.ResNet50;
 import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,10 +71,10 @@ public class ModelBuilderImpl implements ModelBuilder {
         MultiLayerNetwork zooModelOriginal = (MultiLayerNetwork) zooModel.init();
         FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                 .learningRate(this.config.getLearningRate())
-                .learningRatePolicy(LearningRatePolicy.Sigmoid)
-                .lrPolicyDecayRate(0.1)
+                .learningRatePolicy(LearningRatePolicy.Poly)
+                .lrPolicyPower(2.0)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                .updater(Updater.NESTEROVS)
+                .updater(Nesterovs.builder().momentum(0.5).build())
                 .seed(this.config.getSeed())
                 .l1(this.config.getL1())
                 .l2(this.config.getL2())
@@ -84,16 +85,10 @@ public class ModelBuilderImpl implements ModelBuilder {
                 .fineTuneConfiguration(fineTuneConf)
                 .removeLayersFromOutput(1)
                 .addLayer(new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
-                        .nIn(2048)
+                        .nIn(4096)
                         .nOut(dataSet.getLabels().size())
                         .activation(Activation.SIGMOID)
-                        .weightInit(WeightInit.DISTRIBUTION)
-                        .dist(
-                                new NormalDistribution(
-                                        0,
-                                        0.2*(2.0/(2048+dataSet.getLabels().size()))
-                                )
-                        )
+                        .weightInit(WeightInit.XAVIER)
                         .learningRate(this.config.getLearningRate()/1000)
                         .build())
                 .build();

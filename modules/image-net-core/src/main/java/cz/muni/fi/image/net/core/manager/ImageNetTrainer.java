@@ -25,12 +25,14 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.parallelism.EarlyStoppingParallelTrainer;
 import org.deeplearning4j.ui.stats.J7StatsListener;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
+import org.deeplearning4j.ui.weights.ConvolutionalIterationListener;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -130,7 +132,11 @@ public class ImageNetTrainer {
 
         StatsStorage store = new J7FileStatsStorage(new File(this.conf.getTempFolder() + "/model/storage_file"));
 
-        model.setListeners(new J7StatsListener(store), new ScoreIterationListener(1));
+        model.setListeners(
+                //new ConvolutionalIterationListener(store,10,false),
+                new J7StatsListener(store),
+                new ScoreIterationListener(1)
+        );
     }
 
     private void printDatasetStatistics(
