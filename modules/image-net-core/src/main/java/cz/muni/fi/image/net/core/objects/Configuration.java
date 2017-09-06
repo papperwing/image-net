@@ -283,6 +283,21 @@ public class Configuration {
     }
     //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="outputL2">
+    /**
+     *
+     */
+    private double outputL2 = 0;
+
+    public double getOutputL2() {
+        return outputL2;
+    }
+
+    public void setOutputL2(double outputL2) {
+        this.outputL2 = outputL2;
+    }
+    //</editor-fold>
+
     //<editor-fold defaultstate="collapsed" desc="Momentum">
     /**
      *

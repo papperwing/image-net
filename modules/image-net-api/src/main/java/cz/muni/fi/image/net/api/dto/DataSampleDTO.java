@@ -31,7 +31,7 @@ public class DataSampleDTO {
      * @throws IOException
      */
     public DataSampleDTO(String csvLine) throws MalformedURLException, IOException {
-        this(csvLine, ';', ',');
+        this(csvLine, ',', ':');
     }
 
     /**

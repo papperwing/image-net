@@ -26,8 +26,12 @@ import org.deeplearning4j.parallelism.EarlyStoppingParallelTrainer;
 import org.deeplearning4j.ui.stats.J7StatsListener;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
 import org.deeplearning4j.ui.weights.ConvolutionalIterationListener;
+import org.nd4j.linalg.api.buffer.DataBuffer;
+import org.nd4j.linalg.api.ops.Op;
+import org.nd4j.linalg.api.ops.executioner.OpExecutioner;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.profiler.OpProfiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +72,7 @@ public class ImageNetTrainer {
     ) {
 
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
+        //Nd4j.getExecutioner().setProfilingMode(OpExecutioner.ProfilingMode.INF_PANIC);//Panic in case of need
 
         final DataSet testSet = dataset.split(splitPercentage);
 

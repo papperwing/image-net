@@ -3,6 +3,7 @@ package cz.muni.fi.image.net.model.creator;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.enums.ModelType;
+import cz.muni.fi.image.net.core.objects.Label;
 import cz.muni.fi.image.net.core.objects.NeuralNetModel;
 
 import java.io.IOException;
@@ -27,8 +28,14 @@ import org.deeplearning4j.zoo.model.AlexNet;
 import org.deeplearning4j.zoo.model.LeNet;
 import org.deeplearning4j.zoo.model.ResNet50;
 import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.learning.config.AdaDelta;
 import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
+import org.nd4j.linalg.lossfunctions.impl.LossBinaryXENT;
+import org.nd4j.linalg.ops.transforms.Transforms;
+import org.nd4j.linalg.profiler.OpProfiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,27 +75,49 @@ public class ModelBuilderImpl implements ModelBuilder {
                 WorkspaceMode.SEPARATE
         );
 
+
+        Map labelDistribution = dataSet.getLabelDistribution();
+
+        float[] floatArray = new float[labelDistribution.size()];
+        int index = 0;
+        for(Object oValue : labelDistribution.values()){
+            floatArray[index] = (Integer)oValue;
+        }
+        INDArray labelCounts = Nd4j.create(floatArray);
+        INDArray lossWeights = Nd4j.ones(labelDistribution.size()).sub(Transforms.unitVec(labelCounts));
+        logger.debug(lossWeights.data().toString());
+
         MultiLayerNetwork zooModelOriginal = (MultiLayerNetwork) zooModel.init();
         FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                 .learningRate(this.config.getLearningRate())
-                .learningRatePolicy(LearningRatePolicy.Poly)
-                .lrPolicyPower(2.0)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                .updater(Nesterovs.builder().momentum(0.5).build())
+                .updater(Updater.ADADELTA)
                 .seed(this.config.getSeed())
                 .l1(this.config.getL1())
                 .l2(this.config.getL2())
+                .regularization(true)
+                .useRegularization(true)
+                .weightInit(WeightInit.RELU)
+                .biasInit(0.0)
                 .dropOut(this.config.getDropout())
                 .build();
 
+
         MultiLayerNetwork model = new TransferLearning.Builder(zooModelOriginal)
                 .fineTuneConfiguration(fineTuneConf)
-                .removeLayersFromOutput(1)
-                .addLayer(new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
+                .removeLayersFromOutput(2)
+                .addLayer(new DenseLayer.Builder()
                         .nIn(4096)
+                        .nOut(1024)
+                        .activation(Activation.RELU)
+                        .build())
+                .addLayer(new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
+                        .lossFunction(new LossBinaryXENT(/*lossWeights*/))
+                        .nIn(1024)
                         .nOut(dataSet.getLabels().size())
+                        .dropOut(0)
                         .activation(Activation.SIGMOID)
-                        .weightInit(WeightInit.XAVIER)
+                        .l2(this.config.getOutputL2())
                         .learningRate(this.config.getLearningRate()/1000)
                         .build())
                 .build();

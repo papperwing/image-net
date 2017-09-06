@@ -94,11 +94,13 @@ public class DataSetProcessor {
             final org.nd4j.linalg.dataset.DataSet next = dataIter.next();
 
             logger.debug("" + dataSaved);
+            File saveFile = new File(
+                    saveFolder,
+                    saveDataName + "-" + dataSaved + ".bin"
+            );
+            saveFile.deleteOnExit();
             next.save(
-                    new File(
-                            saveFolder,
-                            saveDataName + "-" + dataSaved + ".bin"
-                    )
+                    saveFile
             );
             dataSaved++;
         }

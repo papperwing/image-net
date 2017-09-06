@@ -33,7 +33,7 @@ public class DataSampleDTOTest {
     @Test
     public void testCreateFromCSV() throws MalformedURLException, IOException {
         System.out.println("testCreateFromCSV");
-        DataSampleDTO instance = new DataSampleDTO("\"http://test.test\";\"label\"");;
+        DataSampleDTO instance = new DataSampleDTO("\"http://test.test\",\"label\"");;
         assertEquals(new URL("http://test.test"), instance.url);
         assertArrayEquals(new String[]{"label"}, instance.labels);
     }
@@ -44,18 +44,18 @@ public class DataSampleDTOTest {
     @Test
     public void testToCSVLine() throws IOException {
         System.out.println("toCSVLine");
-        DataSampleDTO instance = new DataSampleDTO("\"http://test.test\";\"label\"");;
-        String expResult = "\"http://test.test\";\"label\"";
+        DataSampleDTO instance = new DataSampleDTO("\"http://test.test\",\"label\"",',',':');;
+        String expResult = "\"http://test.test\",\"label\"";
         String result = instance.toCSVLine();
         assertEquals(expResult, result);
     }
     
     @Test
     public void test() throws IOException {
-    InputStream stream = new ByteArrayInputStream("\"url\";\"label1,label2\"".getBytes(StandardCharsets.UTF_8));
-        CSVReader reader = new CSVReader(new InputStreamReader(stream, StandardCharsets.UTF_8), ';');
+    InputStream stream = new ByteArrayInputStream("\"url\",\"label1:label2\"".getBytes(StandardCharsets.UTF_8));
+        CSVReader reader = new CSVReader(new InputStreamReader(stream, StandardCharsets.UTF_8), ',');
         String[] params = reader.readNext();
-        assertArrayEquals(new String[]{"url","label1,label2"}, params);
+        assertArrayEquals(new String[]{"url","label1:label2"}, params);
     }
     
 }

@@ -44,12 +44,11 @@ public class ImageNetAPI {
      *
      * @param modelName
      * @param dataSamples
-     * @param outputSize
      * @param modelType
      * @return
      * @throws IOException
      */
-    public File getModel(String modelName, DataSampleDTO[] dataSamples, int outputSize, ModelType modelType) throws IOException {
+    public File getModel(String modelName, DataSampleDTO[] dataSamples, ModelType modelType) throws IOException {
 
         logger.info("Starting to build model: " + modelName);
 
@@ -85,7 +84,7 @@ public class ImageNetAPI {
         return model.toFile(modelName);
     }
 
-    public File continueTraining(File modelFile, DataSampleDTO[] dataSamples, int outputSize, ModelType modelType) throws IOException {
+    public File continueTraining(File modelFile, DataSampleDTO[] dataSamples, ModelType modelType) throws IOException {
 
         logger.info("Initialization of managers.");
         final DataSetBuilder datasetBuilder = new DataSetBuilderImpl(config);

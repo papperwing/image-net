@@ -75,6 +75,10 @@ public class App {
             config.setL2(ArgLoader.l2);
         }
 
+        if (ArgLoader.ol2 != null) {
+            config.setOutputL2(ArgLoader.ol2);
+        }
+
         if (ArgLoader.dropout != null) {
             config.setDropout(ArgLoader.dropout);
         }
@@ -126,7 +130,6 @@ public class App {
         api.getModel(
                 ArgLoader.modelName,
                 dataset,
-                7,
                 ArgLoader.model != null ? ModelType.valueOf(ArgLoader.model) : ModelType.RESNET50
         );
     }
@@ -208,7 +211,6 @@ public class App {
         api.continueTraining(
                 new File(modelLocation1),
                 dataset,
-                7,
                 ArgLoader.model != null ? ModelType.valueOf(ArgLoader.model) : ModelType.RESNET50
         );
     }

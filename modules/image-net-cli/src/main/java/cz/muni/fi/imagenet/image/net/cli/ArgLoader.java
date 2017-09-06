@@ -44,6 +44,8 @@ public class ArgLoader {
     public static Double l1;
     @Argument(alias = "l2", description="l2", required = false)
     public static Double l2;
+    @Argument(alias = "ol2", description="output l2", required = false)
+    public static Double ol2;
     @Argument(alias = "dropout", description="dropout", required = false)
     public static Double dropout;
 }
