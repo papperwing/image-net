@@ -13,7 +13,7 @@ import org.deeplearning4j.util.ModelSerializer;
  *
  * @author Jakub Peschel
  */
-public class NeuralNetModel {
+public class NeuralNetModelWrapper {
 
     private final Model model;
 
@@ -26,14 +26,14 @@ public class NeuralNetModel {
     private boolean trained;
 
 
-    public NeuralNetModel(final Model model, List<Label> labelList, ModelType type) {
+    public NeuralNetModelWrapper(final Model model, List<Label> labelList, ModelType type) {
         this.trained = false;
         this.labels = labelList;
         this.model = model;
         this.type = type;
     }
 
-    public NeuralNetModel(final File savedModel, List<Label> labelList, ModelType type) throws IOException {
+    public NeuralNetModelWrapper(final File savedModel, List<Label> labelList, ModelType type) throws IOException {
         this.trained = false;
         if(isModelCG(type)) {
             this.model = ModelSerializer.restoreComputationGraph(savedModel);

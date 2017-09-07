@@ -3,15 +3,12 @@ package cz.muni.fi.image.net.model.creator;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.enums.ModelType;
-import cz.muni.fi.image.net.core.objects.Label;
-import cz.muni.fi.image.net.core.objects.NeuralNetModel;
+import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.LearningRatePolicy;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
@@ -30,12 +27,9 @@ import org.deeplearning4j.zoo.model.ResNet50;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.learning.config.AdaDelta;
-import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.impl.LossBinaryXENT;
 import org.nd4j.linalg.ops.transforms.Transforms;
-import org.nd4j.linalg.profiler.OpProfiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,11 +43,11 @@ public class ModelBuilderImpl implements ModelBuilder {
     }
 
     /**
-     * Method takes parameters and create {@link NeuralNetModel}.
+     * Method takes parameters and create selected model.
      *
-     * @return
+     * @return {@link NeuralNetModelWrapper} with selected model
      */
-    public NeuralNetModel createModel(ModelType modelType, DataSet dataSet) {
+    public NeuralNetModelWrapper createModel(ModelType modelType, DataSet dataSet) {
         switch (modelType) {
             /*case VGG16:
                 return createVggModel(dataSet);*/
@@ -67,7 +61,12 @@ public class ModelBuilderImpl implements ModelBuilder {
         throw new IllegalArgumentException("Unsuported model type selected.");
     }
 
-    private NeuralNetModel createAlexNet(DataSet dataSet) {
+    /**
+     * Create model for other use.
+     * @param dataSet Data sample set containing images and labels
+     * @return {@link NeuralNetModelWrapper} containing adapted configuration of AlexNet
+     */
+    private NeuralNetModelWrapper createAlexNet(DataSet dataSet) {
         ZooModel zooModel = new AlexNet(
                 dataSet.getLabels().size(),
                 this.config.getSeed(),
@@ -91,7 +90,7 @@ public class ModelBuilderImpl implements ModelBuilder {
         FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                 .learningRate(this.config.getLearningRate())
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                .updater(Updater.ADADELTA)
+                .updater(Updater.ADAM)
                 .seed(this.config.getSeed())
                 .l1(this.config.getL1())
                 .l2(this.config.getL2())
@@ -118,16 +117,21 @@ public class ModelBuilderImpl implements ModelBuilder {
                         .dropOut(0)
                         .activation(Activation.SIGMOID)
                         .l2(this.config.getOutputL2())
-                        .learningRate(this.config.getLearningRate()/1000)
+                        .learningRate(this.config.getOLearningRate())
                         .build())
                 .build();
 
 
         logger.info("New model:\n" + model.summary());
-        return new NeuralNetModel(model, dataSet.getLabels(), ModelType.ALEXNET);
+        return new NeuralNetModelWrapper(model, dataSet.getLabels(), ModelType.ALEXNET);
     }
 
-    public NeuralNetModel createLeNetModel(DataSet dataSet) {
+    /**
+     * Create model for other use.
+     * @param dataSet Data sample set containing images and labels
+     * @return {@link NeuralNetModelWrapper} containing adapted configuration of LeNet
+     */
+    public NeuralNetModelWrapper createLeNetModel(DataSet dataSet) {
         ZooModel zooModel = new LeNet(
                 dataSet.getLabels().size(),
                 this.config.getSeed(),
@@ -175,13 +179,19 @@ public class ModelBuilderImpl implements ModelBuilder {
 
 
             logger.info("New model:\n" + model.summary());
-            return new NeuralNetModel(model, dataSet.getLabels(), ModelType.RESNET50);
+            return new NeuralNetModelWrapper(model, dataSet.getLabels(), ModelType.RESNET50);
         } catch (IOException ex) {
             throw new IllegalStateException("Model weights was not loaded", ex);
         }
     }
 
-    public NeuralNetModel createResnet50(DataSet dataSet) {
+
+    /**
+     * Create model for other use.
+     * @param dataSet Data sample set containing images and labels
+     * @return {@link NeuralNetModelWrapper} containing adapted configuration of ResNet50
+     */
+    public NeuralNetModelWrapper createResnet50(DataSet dataSet) {
         ZooModel zooModel = new ResNet50(
                 dataSet.getLabels().size(),
                 this.config.getSeed(),
@@ -236,7 +246,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                     .build();
 
             logger.info("New model:\n" + model.summary());
-            return new NeuralNetModel(model, dataSet.getLabels(), ModelType.RESNET50);
+            return new NeuralNetModelWrapper(model, dataSet.getLabels(), ModelType.RESNET50);
         } catch (IOException ex) {
             throw new IllegalStateException("Model weights was not loaded", ex);
         }

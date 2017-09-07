@@ -8,7 +8,7 @@ import cz.muni.fi.image.net.core.objects.Label;
 import cz.muni.fi.image.net.model.creator.ModelBuilderImpl;
 import cz.muni.fi.image.net.core.objects.DataSample;
 import cz.muni.fi.image.net.core.enums.ModelType;
-import cz.muni.fi.image.net.core.objects.NeuralNetModel;
+import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 import cz.muni.fi.image.net.dataset.creator.DataSetBuilder;
 import cz.muni.fi.image.net.dataset.creator.DataSetBuilderImpl;
 import cz.muni.fi.image.net.model.creator.ModelBuilder;
@@ -69,7 +69,7 @@ public class ImageNetAPI {
         logger.info("Prepared dataset.");
         logger.debug(dataSet.getLabels().toString());
 
-        final NeuralNetModel model = modelBuilder.createModel(
+        final NeuralNetModelWrapper model = modelBuilder.createModel(
                 modelType,
                 dataSet
         );
@@ -98,7 +98,7 @@ public class ImageNetAPI {
         );
 
         logger.info("Loading of model.");
-        final NeuralNetModel model = new NeuralNetModel(modelFile, dataSet.getLabels(), modelType);
+        final NeuralNetModelWrapper model = new NeuralNetModelWrapper(modelFile, dataSet.getLabels(), modelType);
 
         logger.info("Training of model.");
         runner.trainModel(
@@ -130,7 +130,7 @@ public class ImageNetAPI {
             labels.add(new Label(name));
         }
 
-        NeuralNetModel model = new NeuralNetModel(
+        NeuralNetModelWrapper model = new NeuralNetModelWrapper(
                 modelLoc,
                 labels,
                 modelType
@@ -158,7 +158,7 @@ public class ImageNetAPI {
         for (String labelName : labelNameList) {
             labelList.add(new Label(labelName));
         }
-        NeuralNetModel model = new NeuralNetModel(new File(modelLoc), labelList, ModelType.VGG16);
+        NeuralNetModelWrapper model = new NeuralNetModelWrapper(new File(modelLoc), labelList, ModelType.VGG16);
 
         return getLabelNames(runner.classify(model, imageURI));
     }

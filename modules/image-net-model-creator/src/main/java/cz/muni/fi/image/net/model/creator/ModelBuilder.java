@@ -2,7 +2,7 @@ package cz.muni.fi.image.net.model.creator;
 
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.enums.ModelType;
-import cz.muni.fi.image.net.core.objects.NeuralNetModel;
+import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 
 /**
  * Interface for training models and for clasification
@@ -10,7 +10,7 @@ import cz.muni.fi.image.net.core.objects.NeuralNetModel;
  */
 public interface ModelBuilder {
     
-    NeuralNetModel createModel(
+    NeuralNetModelWrapper createModel(
             ModelType modelType, 
             DataSet dataSet
     );

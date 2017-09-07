@@ -1,6 +1,8 @@
 package cz.muni.fi.image.net.api.dto;
 
 import com.opencsv.CSVReader;
+import scala.Char;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,24 +20,26 @@ import java.util.List;
  */
 public class DataSampleDTO {
 
+    private static final char SEPARATOR = ',';
+    private static final char LABEL_SEPARATOR = ':';
+
     private char separator;
     private char labelSeparator;
     final URL url;
     final String[] labels;
 
     /**
+     * DataSample loaded from csv format line with {@link DataSampleDTO#SEPARATOR} and {@link DataSampleDTO#LABEL_SEPARATOR}
      *
-     *
-     * @param csvLine
+     * @param csvLine String in format of csv
      * @throws MalformedURLException
      * @throws IOException
      */
     public DataSampleDTO(String csvLine) throws MalformedURLException, IOException {
-        this(csvLine, ',', ':');
+        this(csvLine, SEPARATOR, LABEL_SEPARATOR);
     }
 
     /**
-     *
      * @param csvLine
      * @param separator
      * @param labelSeparator
@@ -86,6 +90,11 @@ public class DataSampleDTO {
         return message.toString();
     }
 
+    /**
+     * Transform dataSample to cvs styled string
+     *
+     * @return String containing data in csv format
+     */
     public String toCSVLine() {
         final StringBuilder csvLine = new StringBuilder()
                 .append('"')

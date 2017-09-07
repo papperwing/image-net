@@ -5,7 +5,7 @@ import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.objects.Label;
-import cz.muni.fi.image.net.core.objects.NeuralNetModel;
+import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
@@ -25,18 +25,12 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.parallelism.EarlyStoppingParallelTrainer;
 import org.deeplearning4j.ui.stats.J7StatsListener;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
-import org.deeplearning4j.ui.weights.ConvolutionalIterationListener;
-import org.nd4j.linalg.api.buffer.DataBuffer;
-import org.nd4j.linalg.api.ops.Op;
-import org.nd4j.linalg.api.ops.executioner.OpExecutioner;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.profiler.OpProfiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -66,8 +60,8 @@ public class ImageNetTrainer {
      * @param dataset
      * @return
      */
-    public NeuralNetModel trainModel(
-            final NeuralNetModel model,
+    public NeuralNetModelWrapper trainModel(
+            final NeuralNetModelWrapper model,
             final DataSet dataset
     ) {
 
@@ -102,8 +96,8 @@ public class ImageNetTrainer {
         );
     }
 
-    protected NeuralNetModel trainModel(
-            NeuralNetModel model,
+    protected NeuralNetModelWrapper trainModel(
+            NeuralNetModelWrapper model,
             DataSetIterator testIterator,
             DataSetIterator trainIterator,
             List<Label> labels
@@ -127,7 +121,7 @@ public class ImageNetTrainer {
             );
         }
 
-        return new NeuralNetModel(result.getBestModel(), labels, ModelType.VGG16);
+        return new NeuralNetModelWrapper(result.getBestModel(), labels, ModelType.VGG16);
 
     }
 

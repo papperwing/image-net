@@ -48,4 +48,6 @@ public class ArgLoader {
     public static Double ol2;
     @Argument(alias = "dropout", description="dropout", required = false)
     public static Double dropout;
+    @Argument(alias = "oLearningRate", description="olearningRate", required = false)
+    public static Double oLearningRate;
 }

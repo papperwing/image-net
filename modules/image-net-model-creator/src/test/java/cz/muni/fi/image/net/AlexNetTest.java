@@ -2,11 +2,9 @@ package cz.muni.fi.image.net;
 
 import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.Configuration;
-import cz.muni.fi.image.net.core.objects.NeuralNetModel;
+import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 import cz.muni.fi.image.net.model.creator.ModelBuilder;
 import cz.muni.fi.image.net.model.creator.ModelBuilderImpl;
-import org.deeplearning4j.zoo.ZooModel;
-import org.deeplearning4j.zoo.model.AlexNet;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.nd4j.linalg.dataset.ExistingMiniBatchDataSetIterator;
@@ -27,7 +25,7 @@ public class AlexNetTest {
 
         final ModelBuilder modelBuilder = new ModelBuilderImpl(config);
 
-        NeuralNetModel model = modelBuilder.createModel(
+        NeuralNetModelWrapper model = modelBuilder.createModel(
                 ModelType.ALEXNET,
                 new DummyDataSet()
         );

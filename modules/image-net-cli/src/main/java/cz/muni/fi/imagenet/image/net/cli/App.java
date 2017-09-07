@@ -51,6 +51,10 @@ public class App {
             config.setLearningRate(ArgLoader.learningRate);
         }
 
+        if (ArgLoader.oLearningRate != null) {
+            config.setOLearningRate(ArgLoader.oLearningRate);
+        }
+
         if (ArgLoader.epochCount != null) {
             config.setEpoch(ArgLoader.epochCount);
         }

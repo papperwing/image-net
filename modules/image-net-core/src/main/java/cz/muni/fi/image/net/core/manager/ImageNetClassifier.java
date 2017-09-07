@@ -2,7 +2,7 @@ package cz.muni.fi.image.net.core.manager;
 
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.Label;
-import cz.muni.fi.image.net.core.objects.NeuralNetModel;
+import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.graph.ComputationGraph;
@@ -41,7 +41,7 @@ public class ImageNetClassifier {
      * @return
      */
     public List<List<Label>> classify(
-            final NeuralNetModel modelWrapper,
+            final NeuralNetModelWrapper modelWrapper,
             final String[] imageLocations
     ) {
 

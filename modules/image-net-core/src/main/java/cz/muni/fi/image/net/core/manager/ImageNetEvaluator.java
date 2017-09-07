@@ -1,10 +1,9 @@
 package cz.muni.fi.image.net.core.manager;
 
 import cz.muni.fi.image.net.core.dataset.processor.DataSetProcessor;
-import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
-import cz.muni.fi.image.net.core.objects.NeuralNetModel;
+import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 import org.deeplearning4j.eval.EvaluationBinary;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.graph.ComputationGraph;
@@ -23,7 +22,7 @@ public class ImageNetEvaluator {
     }
 
     public String evaluateModel(
-            NeuralNetModel modelWrapper,
+            NeuralNetModelWrapper modelWrapper,
             DataSet dataSet
     ) {
         DataSetProcessor processor = new DataSetProcessor(this.conf, modelWrapper.getType());

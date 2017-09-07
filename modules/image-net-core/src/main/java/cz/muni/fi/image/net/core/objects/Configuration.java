@@ -283,6 +283,21 @@ public class Configuration {
     }
     //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="OlearningRate">
+    /**
+     *
+     */
+    private double oLearningRate = 0.1;
+
+    public double getOLearningRate() {
+        return oLearningRate;
+    }
+
+    public void setOLearningRate(double oLearningRate) {
+        this.oLearningRate = oLearningRate;
+    }
+    //</editor-fold>
+
     //<editor-fold defaultstate="collapsed" desc="outputL2">
     /**
      *

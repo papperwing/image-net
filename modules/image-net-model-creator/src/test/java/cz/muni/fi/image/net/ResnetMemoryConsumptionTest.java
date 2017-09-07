@@ -1,20 +1,12 @@
 package cz.muni.fi.image.net;
 
-import cz.muni.fi.image.net.core.manager.ImageNetTrainer;
 import cz.muni.fi.image.net.core.objects.Configuration;
-import cz.muni.fi.image.net.core.objects.DataSet;
-import cz.muni.fi.image.net.core.objects.Label;
-import cz.muni.fi.image.net.core.objects.DataSample;
 import cz.muni.fi.image.net.core.enums.ModelType;
-import cz.muni.fi.image.net.core.objects.NeuralNetModel;
+import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 import cz.muni.fi.image.net.model.creator.ModelBuilder;
 import cz.muni.fi.image.net.model.creator.ModelBuilderImpl;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -38,7 +30,7 @@ public class ResnetMemoryConsumptionTest {
 
         final ModelBuilder modelBuilder = new ModelBuilderImpl(config);
 
-        NeuralNetModel model = modelBuilder.createModel(
+        NeuralNetModelWrapper model = modelBuilder.createModel(
                 ModelType.RESNET50,
                 new DummyDataSet()
         );
