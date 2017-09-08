@@ -4,32 +4,33 @@ import cz.muni.fi.image.net.core.objects.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
  * Class is used for running neural network base action:
- * <ul><li>training model</li><li>clasification</li></ul>
+ * <ul>
+ *     <li>training model</li>
+ *     <li>clasification of image</li>
+ *     <li>evaluating model</li>
+ * </ul>
  *
  * @author Jakub Peschel
  */
 public class ImageNetRunner {
 
-    private final Logger logger = LoggerFactory.getLogger(ImageNetRunner.class);
-
-
-    private final double treshold = 0.5;
-    private final double splitPercentage = 0.8;
-
     protected final Configuration conf;
 
     /**
-     * @param conf
+     * Constructor of {@link ImageNetRunner}
+     * @param conf global {@link Configuration}
      */
     public ImageNetRunner(Configuration conf) {
         this.conf = conf;
     }
 
     /**
+     *
      * @param model
      * @param dataset
      * @return
@@ -38,11 +39,12 @@ public class ImageNetRunner {
             final NeuralNetModelWrapper model,
             final DataSet dataset
     ) {
-        ImageNetTrainer trainer = new ImageNetTrainer(this.conf);
-        return trainer.trainModel(model, dataset);
+        final ImageNetTrainer trainer = new ImageNetTrainer(this.conf, model);
+        return trainer.trainModel(dataset);
     }
 
     /**
+     *
      * @param modelWrapper
      * @param imageLocations
      * @return
@@ -52,16 +54,23 @@ public class ImageNetRunner {
             final String[] imageLocations
     ) {
 
-        ImageNetClassifier classifier = new ImageNetClassifier(this.conf);
-        return classifier.classify(modelWrapper, imageLocations);
+        final ImageNetClassifier classifier = new ImageNetClassifier(modelWrapper);
+        return classifier.classify(imageLocations);
     }
 
+    /**
+     *
+     *
+     * @param modelWrapper
+     * @param dataSet
+     * @return
+     */
     public String evaluateModel(
-            NeuralNetModelWrapper modelWrapper,
-            DataSet dataSet
+            final NeuralNetModelWrapper modelWrapper,
+            final DataSet dataSet
     ) {
-        ImageNetEvaluator evaluator = new ImageNetEvaluator(this.conf);
-        return evaluator.evaluateModel(modelWrapper, dataSet);
+        final ImageNetEvaluator evaluator = new ImageNetEvaluator(this.conf, modelWrapper);
+        return evaluator.evaluateModel(dataSet);
     }
 
 }

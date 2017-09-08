@@ -87,6 +87,10 @@ public class App {
             config.setDropout(ArgLoader.dropout);
         }
 
+        if (ArgLoader.javaVersion != null){
+            config.setJavaMinorVersion(ArgLoader.javaVersion);
+        }
+
         ImageNetAPI api = new ImageNetAPI(config);
 
         switch (ArgLoader.method) {

@@ -43,9 +43,9 @@ public class ModelBuilderImpl implements ModelBuilder {
     }
 
     /**
-     * Method takes parameters and create selected model.
+     * Method takes parameters and create selected modelWrapper.
      *
-     * @return {@link NeuralNetModelWrapper} with selected model
+     * @return {@link NeuralNetModelWrapper} with selected modelWrapper
      */
     public NeuralNetModelWrapper createModel(ModelType modelType, DataSet dataSet) {
         switch (modelType) {
@@ -58,11 +58,11 @@ public class ModelBuilderImpl implements ModelBuilder {
             case ALEXNET:
                 return createAlexNet(dataSet);
         }
-        throw new IllegalArgumentException("Unsuported model type selected.");
+        throw new IllegalArgumentException("Unsuported modelWrapper type selected.");
     }
 
     /**
-     * Create model for other use.
+     * Create modelWrapper for other use.
      * @param dataSet Data sample set containing images and labels
      * @return {@link NeuralNetModelWrapper} containing adapted configuration of AlexNet
      */
@@ -122,12 +122,12 @@ public class ModelBuilderImpl implements ModelBuilder {
                 .build();
 
 
-        logger.info("New model:\n" + model.summary());
+        logger.info("New modelWrapper:\n" + model.summary());
         return new NeuralNetModelWrapper(model, dataSet.getLabels(), ModelType.ALEXNET);
     }
 
     /**
-     * Create model for other use.
+     * Create modelWrapper for other use.
      * @param dataSet Data sample set containing images and labels
      * @return {@link NeuralNetModelWrapper} containing adapted configuration of LeNet
      */
@@ -178,7 +178,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                     .build();
 
 
-            logger.info("New model:\n" + model.summary());
+            logger.info("New modelWrapper:\n" + model.summary());
             return new NeuralNetModelWrapper(model, dataSet.getLabels(), ModelType.RESNET50);
         } catch (IOException ex) {
             throw new IllegalStateException("Model weights was not loaded", ex);
@@ -187,7 +187,7 @@ public class ModelBuilderImpl implements ModelBuilder {
 
 
     /**
-     * Create model for other use.
+     * Create modelWrapper for other use.
      * @param dataSet Data sample set containing images and labels
      * @return {@link NeuralNetModelWrapper} containing adapted configuration of ResNet50
      */
@@ -245,7 +245,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                     .setWorkspaceMode(WorkspaceMode.SEPARATE)
                     .build();
 
-            logger.info("New model:\n" + model.summary());
+            logger.info("New modelWrapper:\n" + model.summary());
             return new NeuralNetModelWrapper(model, dataSet.getLabels(), ModelType.RESNET50);
         } catch (IOException ex) {
             throw new IllegalStateException("Model weights was not loaded", ex);

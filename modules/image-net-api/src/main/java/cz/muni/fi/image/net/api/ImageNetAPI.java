@@ -50,7 +50,7 @@ public class ImageNetAPI {
      */
     public File getModel(String modelName, DataSampleDTO[] dataSamples, ModelType modelType) throws IOException {
 
-        logger.info("Starting to build model: " + modelName);
+        logger.info("Starting to build modelWrapper: " + modelName);
 
         final DataSetBuilder datasetBuilder = new DataSetBuilderImpl(config);
 
@@ -73,13 +73,13 @@ public class ImageNetAPI {
                 modelType,
                 dataSet
         );
-        logger.info("Created model.");
+        logger.info("Created modelWrapper.");
 
         runner.trainModel(
                 model,
                 dataSet
         );
-        logger.info("Trained model.");
+        logger.info("Trained modelWrapper.");
 
         return model.toFile(modelName);
     }
@@ -97,16 +97,16 @@ public class ImageNetAPI {
                 processor.getDataSampleLabels(dataSamples)
         );
 
-        logger.info("Loading of model.");
+        logger.info("Loading of modelWrapper.");
         final NeuralNetModelWrapper model = new NeuralNetModelWrapper(modelFile, dataSet.getLabels(), modelType);
 
-        logger.info("Training of model.");
+        logger.info("Training of modelWrapper.");
         runner.trainModel(
                 model,
                 dataSet
         );
 
-        logger.info("Saving of model.");
+        logger.info("Saving of modelWrapper.");
         return model.toFile(modelFile.getAbsolutePath());
     }
 

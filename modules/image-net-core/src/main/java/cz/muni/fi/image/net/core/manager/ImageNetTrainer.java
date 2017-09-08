@@ -6,7 +6,6 @@ import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.objects.Label;
 import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
-import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.saver.LocalFileGraphSaver;
@@ -21,10 +20,14 @@ import org.deeplearning4j.earlystopping.trainer.IEarlyStoppingTrainer;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.parallelism.EarlyStoppingParallelTrainer;
 import org.deeplearning4j.ui.stats.J7StatsListener;
+import org.deeplearning4j.ui.stats.StatsListener;
+import org.deeplearning4j.ui.storage.FileStatsStorage;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
+import org.nd4j.linalg.api.ops.executioner.OpExecutioner;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
@@ -44,29 +47,37 @@ public class ImageNetTrainer {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final double splitPercentage = 0.8;
+    private final double splitPercentage = 0.8; //TODO: replace with Configuration setting
 
     protected final Configuration conf;
+    protected final NeuralNetModelWrapper modelWrapper;
 
     /**
-     * @param conf
+     * Constructor of {@link ImageNetTrainer}
+     * @param conf global configuration
      */
-    public ImageNetTrainer(Configuration conf) {
+    public ImageNetTrainer(
+            final Configuration conf,
+            final NeuralNetModelWrapper modelWrapper
+    ) {
         this.conf = conf;
+        this.modelWrapper = modelWrapper;
     }
 
     /**
-     * @param model
+     *
      * @param dataset
      * @return
      */
     public NeuralNetModelWrapper trainModel(
-            final NeuralNetModelWrapper model,
             final DataSet dataset
     ) {
 
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
-        //Nd4j.getExecutioner().setProfilingMode(OpExecutioner.ProfilingMode.INF_PANIC);//Panic in case of need
+
+        if (this.conf.isDebug()){
+            Nd4j.getExecutioner().setProfilingMode(OpExecutioner.ProfilingMode.INF_PANIC);
+        }
 
         final DataSet testSet = dataset.split(splitPercentage);
 
@@ -74,70 +85,109 @@ public class ImageNetTrainer {
         printDatasetStatistics(dataset);
         printDatasetStatistics(testSet);
 
-        DataSetProcessor processor = new DataSetProcessor(conf, model.getType());
+        DataSetProcessor processor = new DataSetProcessor(conf, modelWrapper.getType());
 
         final DataSetIterator trainIterator = processor.presaveDataSetIterator(
                 processor.prepareDataSetIterator(dataset),
-                model.getType(),
+                modelWrapper.getType(),
                 "train"
         );
 
         final DataSetIterator testIterator = processor.presaveDataSetIterator(
                 processor.prepareDataSetIterator(testSet),
-                model.getType(),
+                modelWrapper.getType(),
                 "test"
         );
 
         return trainModel(
-                model,
                 testIterator,
                 trainIterator,
                 dataset.getLabels()
         );
     }
 
+    /**
+     *
+     *
+     * @param testIterator
+     * @param trainIterator
+     * @param labels
+     * @return
+     */
     protected NeuralNetModelWrapper trainModel(
-            NeuralNetModelWrapper model,
             DataSetIterator testIterator,
             DataSetIterator trainIterator,
             List<Label> labels
     ) {
-        setupStatInterface(model.getModel());
+        setupStatInterface(modelWrapper.getModel());
 
         final EarlyStoppingResult<Model> result;
         if (this.conf.getGPUCount() == 1) {
             result = runEarlyStopping(
-                    model.getModel(),
+                    modelWrapper.getModel(),
                     trainIterator,
                     testIterator,
-                    this.conf.getTempFolder() + File.separator + "model"
+                    this.conf.getTempFolder() + File.separator + "modelWrapper"
             );
         } else {
             result = runEarlyStoppingGPU(
-                    model.getModel(),
+                    modelWrapper.getModel(),
                     trainIterator,
                     testIterator,
-                    this.conf.getTempFolder() + File.separator + "model"
+                    this.conf.getTempFolder() + File.separator + "modelWrapper"
             );
         }
+
+        logger.info("Termination reason: " + result.getTerminationReason());
+        logger.info("Termination details: " + result.getTerminationDetails());
+        logger.info("Total epochs: " + result.getTotalEpochs());
+        logger.info("Best epoch number: " + result.getBestModelEpoch());
+        logger.info("Score at best epoch: " + result.getBestModelScore());
 
         return new NeuralNetModelWrapper(result.getBestModel(), labels, ModelType.VGG16);
 
     }
 
+    /**
+     * Adding {@link IterationListener} into modelWrapper for getting further information about process of learning.
+     * <b>It is necessary for correct behaviour to have logger backend for SL4J correctly set.</b>
+     *
+     * @param model {@link Model} into which are {@link IterationListener} set
+     */
     private void setupStatInterface(
             Model model
     ) {
 
-        StatsStorage store = new J7FileStatsStorage(new File(this.conf.getTempFolder() + "/model/storage_file"));
-
+        File storeFile = new File(this.conf.getTempFolder() + "/modelWrapper/storage_file");
+        IterationListener statListener;
+        if (this.conf.getJavaMinorVersion() == 7) {
+            statListener = new J7StatsListener(
+                    new J7FileStatsStorage(
+                            storeFile
+                    )
+            );
+        } else if (this.conf.getJavaMinorVersion() > 7) {
+            statListener = new StatsListener(
+                    new FileStatsStorage(
+                            storeFile
+                    )
+            );
+        } else {
+            throw new IllegalStateException("version of java is too small. Upgrade your Java at least to 1.7");
+        }
         model.setListeners(
                 //new ConvolutionalIterationListener(store,10,false),
-                new J7StatsListener(store),
+                statListener,
                 new ScoreIterationListener(1)
         );
     }
 
+
+    /**
+     * Method print information about dataset label distribution
+     *
+     * @param set {@link DataSet} containing data samples
+     */
     private void printDatasetStatistics(
             final DataSet set
     ) {
@@ -167,6 +217,15 @@ public class ImageNetTrainer {
         logger.info(statistic.toString());
     }
 
+
+    /**
+     *
+     * @param model
+     * @param trainDataSet
+     * @param testDataSet
+     * @param tempDirLoc
+     * @return
+     */
     private EarlyStoppingResult runEarlyStopping(
             final Model model,
             final DataSetIterator trainDataSet,
@@ -218,15 +277,17 @@ public class ImageNetTrainer {
             result = trainer.fit();
         }
 
-        logger.info("Termination reason: " + result.getTerminationReason());
-        logger.info("Termination details: " + result.getTerminationDetails());
-        logger.info("Total epochs: " + result.getTotalEpochs());
-        logger.info("Best epoch number: " + result.getBestModelEpoch());
-        logger.info("Score at best epoch: " + result.getBestModelScore());
-
         return result;
     }
 
+    /**
+     *
+     * @param model
+     * @param trainDataSet
+     * @param testDataSet
+     * @param tempDirLoc
+     * @return
+     */
     private EarlyStoppingResult runEarlyStoppingGPU(
             final Model model,
             final DataSetIterator trainDataSet,
@@ -283,12 +344,6 @@ public class ImageNetTrainer {
             );
             result = trainer.fit();
         }
-
-        logger.info("Termination reason: " + result.getTerminationReason());
-        logger.info("Termination details: " + result.getTerminationDetails());
-        logger.info("Total epochs: " + result.getTotalEpochs());
-        logger.info("Best epoch number: " + result.getBestModelEpoch());
-        logger.info("Score at best epoch: " + result.getBestModelScore());
 
         return result;
     }

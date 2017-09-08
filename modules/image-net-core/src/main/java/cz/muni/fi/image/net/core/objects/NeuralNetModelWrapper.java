@@ -9,7 +9,7 @@ import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.util.ModelSerializer;
 
 /**
- * Class for storing model of neural net
+ * Class for storing modelWrapper of neural net
  *
  * @author Jakub Peschel
  */
@@ -90,7 +90,7 @@ public class NeuralNetModelWrapper {
             case VGG16:
                 return true;
             default:
-                throw new IllegalStateException("Unknown model type.");
+                throw new IllegalStateException("Unknown modelWrapper type.");
         }
     }
 

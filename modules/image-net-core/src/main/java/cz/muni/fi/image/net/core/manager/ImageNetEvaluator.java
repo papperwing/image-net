@@ -11,22 +11,40 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 /**
+ * ImageNetEvaluator serves as evaluator of trained models on custom data.
+ *
  * @author Jakub Peschel
  */
 public class ImageNetEvaluator {
 
     protected final Configuration conf;
+    protected final NeuralNetModelWrapper modelWrapper;
 
-    public ImageNetEvaluator(Configuration conf) {
+    /**
+     * Constructor for {@link ImageNetEvaluator}
+     * @param conf Global {@link Configuration}
+     * @param modelWrapper {@link NeuralNetModelWrapper} for tested modelWrapper
+     */
+    public ImageNetEvaluator(
+            final Configuration conf,
+            final NeuralNetModelWrapper modelWrapper
+    ) {
         this.conf = conf;
+        this.modelWrapper = modelWrapper;
     }
 
+
+    /**
+     * Test of the modelWrapper on selected dataSet
+     *
+     * @param dataSet {@link DataSet} containing data for testing
+     * @return {@link String} containing information about performance and confusion matrix
+     */
     public String evaluateModel(
-            NeuralNetModelWrapper modelWrapper,
-            DataSet dataSet
+            final DataSet dataSet
     ) {
-        DataSetProcessor processor = new DataSetProcessor(this.conf, modelWrapper.getType());
-        DataSetIterator iter = processor.presaveDataSetIterator(
+        final DataSetProcessor processor = new DataSetProcessor(this.conf, modelWrapper.getType());
+        final DataSetIterator iter = processor.presaveDataSetIterator(
                 processor.prepareDataSetIterator(dataSet),
                 modelWrapper.getType(),
                 "evaluation"
@@ -39,7 +57,7 @@ public class ImageNetEvaluator {
 
         evaluationBinary.setLabelNames(iter.getLabels());
 
-        Model model = modelWrapper.getModel();
+        final Model model = modelWrapper.getModel();
 
         if (model instanceof MultiLayerNetwork) {
             ((MultiLayerNetwork) model).doEvaluation(iter, evaluationBinary);

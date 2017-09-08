@@ -16,10 +16,13 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by jpeschel on 17.7.17.
+ * ImageNetClassifier serves as categorization tool based on trained modelWrapper passed to it.
+ *
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
 public class ImageNetClassifier {
 
@@ -29,19 +32,24 @@ public class ImageNetClassifier {
 
     private final double treshold = 0.5;
 
-    protected final Configuration conf;
+    protected final NeuralNetModelWrapper modelWrapper;
 
-    public ImageNetClassifier(Configuration conf) {
-        this.conf = conf;
+    /**
+     *
+     * Constructor of {@link ImageNetClassifier}
+     * @param modelWrapper
+     */
+    public ImageNetClassifier(
+            final NeuralNetModelWrapper modelWrapper
+    ) {
+        this.modelWrapper = modelWrapper;
     }
 
     /**
-     * @param modelWrapper
      * @param imageLocations
      * @return
      */
     public List<List<Label>> classify(
-            final NeuralNetModelWrapper modelWrapper,
             final String[] imageLocations
     ) {
 

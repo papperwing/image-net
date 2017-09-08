@@ -13,10 +13,9 @@ public class ArgLoader {
     public static String datasetLoc;
     @Argument(alias = "imageLoc", description="Location of downloaded images", required = false)
     public static String imageLoc;
-
-    @Argument(alias = "type", description="Type of model for transfer learning", required = false)
+    @Argument(alias = "type", description="Type of modelWrapper for transfer learning", required = false)
     public static String model;
-    @Argument(alias = "name", description="Name of stored model", required = false)
+    @Argument(alias = "name", description="Name of stored modelWrapper", required = false)
     public static String modelName;
     @Argument(alias = "time", description="Time for computation in minutes", required = false)
     public static Long time;
@@ -28,7 +27,7 @@ public class ArgLoader {
     public static String imageURI;
     @Argument(alias = "labelList", description = "List of labels", required = false, delimiter = ",")
     public static String[] labelList;
-    @Argument(alias = "modelLoc", description="Trained model location", required = false)
+    @Argument(alias = "modelLoc", description="Trained modelWrapper location", required = false)
     public static String modelLoc;
     @Argument(alias = "learningRate", description="learningRate", required = false)
     public static Double learningRate;
@@ -50,4 +49,6 @@ public class ArgLoader {
     public static Double dropout;
     @Argument(alias = "oLearningRate", description="olearningRate", required = false)
     public static Double oLearningRate;
+    @Argument(alias = "jv", description="Java minor version", required = false)
+    public static Double javaVersion;
 }

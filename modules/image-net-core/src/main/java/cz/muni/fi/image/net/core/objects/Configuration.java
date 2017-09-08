@@ -327,4 +327,35 @@ public class Configuration {
         this.momentum = momentum;
     }
     //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="JavaMinorVersion">
+    /**
+     *
+     */
+    private double javaMinorVersion = 7;
+
+    public double getJavaMinorVersion() {
+        return javaMinorVersion;
+    }
+
+    public void setJavaMinorVersion(double javaMinorVersion) {
+        this.javaMinorVersion = javaMinorVersion;
+    }
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="Debug">
+    /**
+     *
+     */
+    private boolean debug = false;
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+    //</editor-fold>
+
 }
