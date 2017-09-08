@@ -76,7 +76,7 @@ public class ImageNetTrainer {
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
 
         if (this.conf.isDebug()){
-            Nd4j.getExecutioner().setProfilingMode(OpExecutioner.ProfilingMode.INF_PANIC);
+            Nd4j.getExecutioner().setProfilingMode(OpExecutioner.ProfilingMode.ANY_PANIC);
         }
 
         final DataSet testSet = dataset.split(splitPercentage);
@@ -127,14 +127,14 @@ public class ImageNetTrainer {
                     modelWrapper.getModel(),
                     trainIterator,
                     testIterator,
-                    this.conf.getTempFolder() + File.separator + "modelWrapper"
+                    this.conf.getTempFolder() + File.separator + "model"
             );
         } else {
             result = runEarlyStoppingGPU(
                     modelWrapper.getModel(),
                     trainIterator,
                     testIterator,
-                    this.conf.getTempFolder() + File.separator + "modelWrapper"
+                    this.conf.getTempFolder() + File.separator + "model"
             );
         }
 
@@ -158,7 +158,7 @@ public class ImageNetTrainer {
             Model model
     ) {
 
-        File storeFile = new File(this.conf.getTempFolder() + "/modelWrapper/storage_file");
+        File storeFile = new File(this.conf.getTempFolder() + "/model/storage_file");
         IterationListener statListener;
         if (this.conf.getJavaMinorVersion() == 7) {
             statListener = new J7StatsListener(

@@ -11,19 +11,20 @@ import java.util.List;
 public class TestTrainer extends ImageNetTrainer {
 
 
-    public TestTrainer(Configuration conf) {
-        super(conf);
+    public TestTrainer(
+            Configuration conf,
+            NeuralNetModelWrapper model
+    ) {
+        super(conf, model);
     }
 
     @Override
     public NeuralNetModelWrapper trainModel(
-            NeuralNetModelWrapper model,
             DataSetIterator testIterator,
             DataSetIterator trainIterator,
             List<Label> labels
     ) {
         return super.trainModel(
-                model,
                 testIterator,
                 trainIterator,
                 labels

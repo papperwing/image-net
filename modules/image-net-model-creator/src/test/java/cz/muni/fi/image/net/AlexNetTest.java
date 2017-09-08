@@ -30,7 +30,7 @@ public class AlexNetTest {
                 new DummyDataSet()
         );
 
-        final TestTrainer trainer = new TestTrainer(config);
+        final TestTrainer trainer = new TestTrainer(config, model);
 
         DataSetIterator testIterator = new ExistingMiniBatchDataSetIterator(
                 new File(config.getTempFolder() + "/test/test"),
@@ -43,7 +43,6 @@ public class AlexNetTest {
         );
 
         trainer.trainModel(
-                model,
                 testIterator,
                 trainIterator,
                 new DummyDataSet().getLabels()
