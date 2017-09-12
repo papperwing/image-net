@@ -332,7 +332,7 @@ public class Configuration {
     /**
      *
      */
-    private double javaMinorVersion = 7;
+    private double javaMinorVersion = 8;
 
     public double getJavaMinorVersion() {
         return javaMinorVersion;

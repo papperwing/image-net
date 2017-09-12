@@ -6,9 +6,12 @@ import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.LearningRatePolicy;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
@@ -27,6 +30,8 @@ import org.deeplearning4j.zoo.model.ResNet50;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.learning.config.Adam;
+import org.nd4j.linalg.learning.config.Nadam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.impl.LossBinaryXENT;
 import org.nd4j.linalg.ops.transforms.Transforms;
@@ -86,11 +91,20 @@ public class ModelBuilderImpl implements ModelBuilder {
         INDArray lossWeights = Nd4j.ones(labelDistribution.size()).sub(Transforms.unitVec(labelCounts));
         logger.debug(lossWeights.data().toString());
 
+        Map<Integer, Double> lrSchedule = new LinkedHashMap<>();
+        lrSchedule.put(0,0.001);
+        lrSchedule.put(600,0.0001);
+        lrSchedule.put(1000,0.0001);
+        lrSchedule.put(3000,0.00001);
+        lrSchedule.put(10000,0.000001);
+        lrSchedule.put(20000,0.0000001);
         MultiLayerNetwork zooModelOriginal = (MultiLayerNetwork) zooModel.init();
         FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                 .learningRate(this.config.getLearningRate())
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                .updater(Updater.ADAM)
+                .updater(new Adam())
+                .learningRatePolicy(LearningRatePolicy.Schedule)
+                .learningRateSchedule(lrSchedule)
                 .seed(this.config.getSeed())
                 .l1(this.config.getL1())
                 .l2(this.config.getL2())

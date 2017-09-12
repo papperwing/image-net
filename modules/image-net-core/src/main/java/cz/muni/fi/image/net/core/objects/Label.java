@@ -41,4 +41,9 @@ public class Label implements Comparable<Label>{
     public int compareTo(Label t) {
         return this.getLabelName().compareTo(t.getLabelName());
     }
+
+    @Override
+    public String toString() {
+        return labelName;
+    }
 }

@@ -21,27 +21,45 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by jpeschel on 4.7.17.
+ * DataSetProcessor serves as transform from {@link DataSet} into {@link DataSetIterator}.
+ * It also can presave data for sake of saving time and resources for
+ * repeated transformation of images into {@link org.nd4j.linalg.api.ndarray.INDArray}.
+ *
+ * @author Jakub Peschel (jakub.peschel@studentagency.cz)
  */
 public class DataSetProcessor {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    final Configuration conf;
+    private final Configuration conf;
 
     //TODO: need to be changed based on input shape of specific network
     private final int height = 224;
     private final int width = 224;
     private final int channels = 3;
 
-    final ModelType modelType;
+    private final ModelType modelType;
 
-    public DataSetProcessor(Configuration conf,
-                            ModelType modelType) {
+    /**
+     * Constructor of {@link DataSetProcessor}
+     *
+     * @param conf      global configuration
+     * @param modelType type of model for which is {@link DataSetIterator} created
+     */
+    public DataSetProcessor(
+            final Configuration conf,
+            final ModelType modelType
+    ) {
         this.conf = conf;
         this.modelType = modelType;
     }
 
+    /**
+     * Transformation of {@link DataSet} into {@link DataSetIterator}.
+     *
+     * @param dataset {@link DataSet} containing data for training
+     * @return {@link DataSetIterator} containing data for training
+     */
     public DataSetIterator prepareDataSetIterator(
             final DataSet dataset
     ) {
@@ -74,8 +92,16 @@ public class DataSetProcessor {
         return dataIter;
     }
 
+    /**
+     * Saving
+     *
+     * @param dataIter
+     * @param modelType
+     * @param saveDataName
+     * @return
+     */
     public DataSetIterator presaveDataSetIterator(
-            DataSetIterator dataIter,
+            final DataSetIterator dataIter,
             final ModelType modelType,
             final String saveDataName
     ) {
@@ -111,7 +137,6 @@ public class DataSetProcessor {
                 saveDataName + "-[0-9]+.bin",
                 true
         );
-        iter.setPreProcessor(new ImageNormalizer(modelType).getDataNormalization());
         return iter;
     }
 }

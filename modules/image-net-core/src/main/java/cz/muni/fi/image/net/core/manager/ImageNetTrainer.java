@@ -315,7 +315,7 @@ public class ImageNetTrainer {
                     (MultiLayerNetwork) model,
                     trainDataSet,
                     null,
-                    1,
+                    this.conf.getGPUCount(),
                     1,
                     1
             );
