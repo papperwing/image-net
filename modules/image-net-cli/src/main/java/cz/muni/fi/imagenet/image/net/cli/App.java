@@ -223,4 +223,36 @@ public class App {
         );
     }
 
+    private static void binaryModelTraining(ImageNetAPI api) throws IllegalArgumentException, IOException  {
+        File datasetFile = new File(ArgLoader.datasetLoc);
+        if (!datasetFile.isFile() || !datasetFile.canRead()) {
+            throw new IllegalArgumentException("There is wrong path to dataset file.");
+        }
+        logger.info("Loading dataset: " + datasetFile.getAbsolutePath());
+
+        List<DataSampleDTO> datasetList = new ArrayList();
+
+        try (final BufferedReader fileReader = new BufferedReader(new FileReader(datasetFile))) {
+            String line = fileReader.readLine();
+            while (line != null) {
+
+                DataSampleDTO sample = new DataSampleDTO(line);
+                datasetList.add(sample);
+                line = fileReader.readLine();
+            }
+        }
+
+        DataSampleDTO[] dataset = new DataSampleDTO[datasetList.size()];
+        dataset = datasetList.toArray(dataset);
+
+
+        String modelLocation1 = ArgLoader.modelLoc;
+
+        api.binaryTraining(
+                new File(modelLocation1),
+                dataset,
+                ArgLoader.model != null ? ModelType.valueOf(ArgLoader.model) : ModelType.RESNET50
+        );
+    }
+
 }

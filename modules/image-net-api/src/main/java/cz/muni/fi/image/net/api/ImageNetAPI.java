@@ -176,4 +176,47 @@ public class ImageNetAPI {
         return results;
     }
 
+    /**
+     *
+     * @param modelName
+     * @param dataSamples
+     * @param modelType
+     * @return
+     * @throws IOException
+     */
+    public File binaryTrain(String modelName, DataSampleDTO[] dataSamples, ModelType modelType) throws IOException {
+
+        logger.info("Starting to build modelWrapper: " + modelName);
+
+        final DataSetBuilder datasetBuilder = new DataSetBuilderImpl(config);
+
+        final ModelBuilder modelBuilder = new ModelBuilderImpl(config);
+
+        final ImageNetRunner runner = new ImageNetRunner(config);
+
+        logger.info("Process initialized.");
+
+        final DataSampleProcessor processor = new DataSampleProcessor(config);
+
+        final DataSet dataSet = datasetBuilder.buildBinaryDataSet(
+                processor.getDataSampleCollection(dataSamples),
+                processor.getDataSampleLabels(dataSamples)
+        );
+        logger.info("Prepared dataset.");
+        logger.debug(dataSet.getLabels().toString());
+
+        final NeuralNetModelWrapper model = modelBuilder.createModel(
+                modelType,
+                dataSet
+        );
+        logger.info("Created modelWrapper.");
+
+        runner.trainModel(
+                model,
+                dataSet
+        );
+        logger.info("Trained modelWrapper.");
+
+        return model.toFile(modelName);
+    }
 }

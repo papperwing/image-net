@@ -18,15 +18,18 @@ import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingTrainer;
 import org.deeplearning4j.earlystopping.trainer.IEarlyStoppingTrainer;
 import org.deeplearning4j.nn.api.Model;
+import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.parallelism.EarlyStoppingParallelTrainer;
+import org.deeplearning4j.parallelism.ParallelWrapper;
 import org.deeplearning4j.ui.stats.J7StatsListener;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.FileStatsStorage;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
+import org.nd4j.jita.conf.CudaEnvironment;
 import org.nd4j.linalg.api.ops.executioner.OpExecutioner;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
@@ -99,11 +102,20 @@ public class ImageNetTrainer {
                 "test"
         );
 
+        /*
         return trainModel(
                 testIterator,
                 trainIterator,
                 dataset.getLabels()
-        );
+        );*/
+
+        setupStatInterface(modelWrapper.getModel());
+        return new NeuralNetModelWrapper(testRunEarlyStoppingGPU(modelWrapper.getModel(),
+                testIterator,
+                trainIterator,
+                ""),
+                dataset.getLabels(),
+                ModelType.ALEXNET);
     }
 
     /**
@@ -130,6 +142,7 @@ public class ImageNetTrainer {
                     this.conf.getTempFolder() + File.separator + "model"
             );
         } else {
+            CudaEnvironment.getInstance().getConfiguration().allowMultiGPU(true);
             result = runEarlyStoppingGPU(
                     modelWrapper.getModel(),
                     trainIterator,
@@ -144,7 +157,7 @@ public class ImageNetTrainer {
         logger.info("Best epoch number: " + result.getBestModelEpoch());
         logger.info("Score at best epoch: " + result.getBestModelScore());
 
-        return new NeuralNetModelWrapper(result.getBestModel(), labels, ModelType.VGG16);
+        return new NeuralNetModelWrapper(result.getBestModel(), labels, ModelType.ALEXNET);
 
     }
 
@@ -301,8 +314,8 @@ public class ImageNetTrainer {
 
             final EarlyStoppingConfiguration.Builder<MultiLayerNetwork> builder = new EarlyStoppingConfiguration.Builder()
                     .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
-                    .modelSaver(new LocalFileGraphSaver(tempDirLoc))
-                    .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true))
+                    .modelSaver(new LocalFileModelSaver(tempDirLoc))
+                    .scoreCalculator(new DataSetLossCalculator(testDataSet, true))
                     .evaluateEveryNEpochs(1);
 
             if (this.conf.isTimed()) {
@@ -346,5 +359,26 @@ public class ImageNetTrainer {
         }
 
         return result;
+    }
+
+    private Model testRunEarlyStoppingGPU(
+            final Model model,
+            final DataSetIterator trainDataSet,
+            final DataSetIterator testDataSet,
+            final String tempDirLoc
+    ){
+        ParallelWrapper wrapper = new ParallelWrapper.Builder(model)
+                .prefetchBuffer(1)
+                .workers(this.conf.getGPUCount())
+                .averagingFrequency(1)
+                .reportScoreAfterAveraging(true)
+                .workspaceMode(WorkspaceMode.SEPARATE)
+                .build();
+
+        int actualEpoch = 0;
+        while (actualEpoch < this.conf.getEpoch()){
+            wrapper.fit(trainDataSet);
+        }
+        return model;
     }
 }

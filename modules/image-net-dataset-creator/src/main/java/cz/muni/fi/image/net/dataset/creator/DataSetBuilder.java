@@ -15,4 +15,6 @@ public interface DataSetBuilder {
     
     DataSetImpl buildDataSet(List<DataSample> downloadResult, List<Label> labels);
 
+    DataSetImpl buildBinaryDataSet(List<DataSample> downloadResult, List<Label> labels);
+
 }

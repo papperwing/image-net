@@ -92,9 +92,7 @@ public class ModelBuilderImpl implements ModelBuilder {
         logger.debug(lossWeights.data().toString());
 
         Map<Integer, Double> lrSchedule = new LinkedHashMap<>();
-        lrSchedule.put(0,0.001);
-        lrSchedule.put(600,0.0001);
-        lrSchedule.put(1000,0.0001);
+        lrSchedule.put(0,0.0001);
         lrSchedule.put(3000,0.00001);
         lrSchedule.put(10000,0.000001);
         lrSchedule.put(20000,0.0000001);

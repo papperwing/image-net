@@ -19,4 +19,8 @@ public class DataSetBuilderImpl implements DataSetBuilder {
         return new DataSetImpl(dataSampleCollection, labels);
     }
 
+    public DataSetImpl buildBinaryDataSet(List<DataSample> dataSampleCollection, List<Label> labels) {
+        return new DataSetImpl(dataSampleCollection, labels);
+    }
+
 }
