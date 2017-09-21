@@ -6,28 +6,22 @@ import cz.muni.fi.image.net.core.data.sample.processing.PresavedMiniBatchDataSet
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.enums.ModelType;
-import org.datavec.image.transform.*;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
-import org.nd4j.linalg.dataset.ExistingMiniBatchDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
-import org.nd4j.linalg.primitives.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
- * DataSetProcessor serves as transform from {@link DataSet} into {@link DataSetIterator}.
+ * DataSetTransform serves as transform from {@link DataSet} into {@link DataSetIterator}.
  * It also can presave data for sake of saving time and resources for
  * repeated transformation of images into {@link org.nd4j.linalg.api.ndarray.INDArray}.
  *
- * @author Jakub Peschel (jakub.peschel@studentagency.cz)
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
-public class DataSetProcessor {
+public class DataSetTransform {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -41,12 +35,12 @@ public class DataSetProcessor {
     private final ModelType modelType;
 
     /**
-     * Constructor of {@link DataSetProcessor}
+     * Constructor of {@link DataSetTransform}
      *
      * @param conf      global configuration
      * @param modelType type of model for which is {@link DataSetIterator} created
      */
-    public DataSetProcessor(
+    public DataSetTransform(
             final Configuration conf,
             final ModelType modelType
     ) {
@@ -120,7 +114,7 @@ public class DataSetProcessor {
             final org.nd4j.linalg.dataset.DataSet next = dataIter.next();
 
             logger.debug("" + dataSaved);
-            File saveFile = new File(
+            final File saveFile = new File(
                     saveFolder,
                     saveDataName + "-" + dataSaved + ".bin"
             );
@@ -132,7 +126,7 @@ public class DataSetProcessor {
         }
         logger.debug("DataSet presaved");
 
-        DataSetIterator iter = new PresavedMiniBatchDataSetIterator(
+        final DataSetIterator iter = new PresavedMiniBatchDataSetIterator(
                 saveFolder,
                 saveDataName + "-[0-9]+.bin",
                 true

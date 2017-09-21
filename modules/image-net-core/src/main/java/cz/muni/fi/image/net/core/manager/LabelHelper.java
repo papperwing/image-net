@@ -6,17 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- * @author jpeschel
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
 public class LabelHelper {
-    
-    public static List<String> translate (List<Label> labels){
-        List<String> result = new ArrayList();
-        for (Label label : labels){
+
+    public static List<String> translate(final List<Label> labels) {
+        final List<String> result = new ArrayList();
+        for (final Label label : labels) {
             result.add(label.getLabelName());
         }
         return result;
     }
-    
+
 }

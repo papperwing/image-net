@@ -1,6 +1,6 @@
 package cz.muni.fi.image.net.core.manager;
 
-import cz.muni.fi.image.net.core.dataset.processor.DataSetProcessor;
+import cz.muni.fi.image.net.core.dataset.processor.DataSetTransform;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
@@ -22,7 +22,8 @@ public class ImageNetEvaluator {
 
     /**
      * Constructor for {@link ImageNetEvaluator}
-     * @param conf Global {@link Configuration}
+     *
+     * @param conf         Global {@link Configuration}
      * @param modelWrapper {@link NeuralNetModelWrapper} for tested modelWrapper
      */
     public ImageNetEvaluator(
@@ -43,7 +44,7 @@ public class ImageNetEvaluator {
     public String evaluateModel(
             final DataSet dataSet
     ) {
-        final DataSetProcessor processor = new DataSetProcessor(this.conf, modelWrapper.getType());
+        final DataSetTransform processor = new DataSetTransform(this.conf, modelWrapper.getType());
         final DataSetIterator iter = processor.presaveDataSetIterator(
                 processor.prepareDataSetIterator(dataSet),
                 modelWrapper.getType(),

@@ -32,7 +32,7 @@ public class DummyDataSet implements DataSet {
         );
     }
 
-    public DataSet split(double percentage) {
+    public DataSet split(final double percentage) {
         return new DummyDataSet();
     }
 

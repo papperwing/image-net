@@ -4,19 +4,23 @@ import cz.muni.fi.image.net.api.dto.DataSampleDTO;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.api.ImageNetAPI;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sampullara.cli.Args;
+
 import java.io.IOException;
 
 /**
+ * Simple console line interface for training and evaluation of neural networks.
  *
- * @author Jakub Peschel
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
 public class App {
 
@@ -36,6 +40,7 @@ public class App {
 
         Configuration config = new Configuration();
 
+        //TODO: refactor passing commandline arguments into configuration
         if (ArgLoader.imageLoc != null) {
             config.setImageDownloadFolder(ArgLoader.imageLoc);
         } else {
@@ -58,7 +63,7 @@ public class App {
         if (ArgLoader.epochCount != null) {
             config.setEpoch(ArgLoader.epochCount);
         }
-        
+
         if (ArgLoader.tempLoc != null) {
             config.setTempFolder(ArgLoader.tempLoc);
         }
@@ -87,7 +92,7 @@ public class App {
             config.setDropout(ArgLoader.dropout);
         }
 
-        if (ArgLoader.javaVersion != null){
+        if (ArgLoader.javaVersion != null) {
             config.setJavaMinorVersion(ArgLoader.javaVersion);
         }
 
@@ -113,28 +118,28 @@ public class App {
         logger.info("Finnished");
     }
 
-    private static void train(ImageNetAPI api) throws IllegalArgumentException, IOException {
-        File datasetFile = new File(ArgLoader.datasetLoc);
+    private static void train(final ImageNetAPI api) throws IllegalArgumentException, IOException {
+        final File datasetFile = new File(ArgLoader.datasetLoc);
         if (!datasetFile.isFile() || !datasetFile.canRead()) {
             throw new IllegalArgumentException("There is wrong path to dataset file.");
         }
         logger.info("Loading dataset: " + datasetFile.getAbsolutePath());
-        
-        List<DataSampleDTO> datasetList = new ArrayList();
-        
+
+        final List<DataSampleDTO> datasetList = new ArrayList();
+
         try (final BufferedReader fileReader = new BufferedReader(new FileReader(datasetFile))) {
             String line = fileReader.readLine();
             while (line != null) {
-                
-                DataSampleDTO sample = new DataSampleDTO(line);
+
+                final DataSampleDTO sample = new DataSampleDTO(line);
                 datasetList.add(sample);
                 line = fileReader.readLine();
             }
         }
-        
+
         DataSampleDTO[] dataset = new DataSampleDTO[datasetList.size()];
         dataset = datasetList.toArray(dataset);
-        
+
         api.getModel(
                 ArgLoader.modelName,
                 dataset,
@@ -142,35 +147,37 @@ public class App {
         );
     }
 
-    private static void classify(ImageNetAPI api) throws IOException {
-        String imageURI = ArgLoader.imageURI;
-        String modelLocation = ArgLoader.modelLoc;
+    private static void classify(final ImageNetAPI api) throws IOException {
+        final String imageURI = ArgLoader.imageURI;
+        final String modelLocation = ArgLoader.modelLoc;
 
-        List<String> labelNameList = new ArrayList();
-        for (String labelName : ArgLoader.labelList) {
+        final List<String> labelNameList = new ArrayList();
+        for (final String labelName : ArgLoader.labelList) {
             labelNameList.add(labelName);
         }
+        //TODO: create object for List<List<>> object
         final List<List<String>> classify = api.classify(modelLocation, labelNameList, imageURI);
         for (List<String> result : classify) {
             logger.info("Labels: " + result.toString());
         }
     }
 
-    private static void evaluate(ImageNetAPI api) throws IllegalArgumentException, IOException {
-        File datasetFile1 = new File(ArgLoader.datasetLoc);
+    private static void evaluate(final ImageNetAPI api) throws IllegalArgumentException, IOException {
+        final File datasetFile1 = new File(ArgLoader.datasetLoc);
         if (!datasetFile1.isFile() || !datasetFile1.canRead()) {
             throw new IllegalArgumentException("There is wrong path to dataset file.");
         }
 
-        String modelLocation1 = ArgLoader.modelLoc;
+        final String modelLocation1 = ArgLoader.modelLoc;
 
-        List<String> labelNameList1 = new ArrayList();
-        for (String labelName : ArgLoader.labelList) {
+        final List<String> labelNameList1 = new ArrayList();
+        for (final String labelName : ArgLoader.labelList) {
             labelNameList1.add(labelName);
         }
 
-        List<DataSampleDTO> datasetList1 = new ArrayList();
+        final List<DataSampleDTO> datasetList1 = new ArrayList();
 
+        //TODO: refactor duplicate code
         try (final BufferedReader fileReader = new BufferedReader(new FileReader(datasetFile1))) {
             String line = fileReader.readLine();
             while (line != null) {
@@ -191,64 +198,32 @@ public class App {
         logger.info("\n" + evaluate);
     }
 
-    private static void continueTraining(ImageNetAPI api) throws IllegalArgumentException, IOException  {
-        File datasetFile = new File(ArgLoader.datasetLoc);
+    private static void continueTraining(final ImageNetAPI api) throws IllegalArgumentException, IOException {
+        final File datasetFile = new File(ArgLoader.datasetLoc);
         if (!datasetFile.isFile() || !datasetFile.canRead()) {
             throw new IllegalArgumentException("There is wrong path to dataset file.");
         }
         logger.info("Loading dataset: " + datasetFile.getAbsolutePath());
-        
-        List<DataSampleDTO> datasetList = new ArrayList();
-        
+
+        final List<DataSampleDTO> datasetList = new ArrayList();
+
         try (final BufferedReader fileReader = new BufferedReader(new FileReader(datasetFile))) {
             String line = fileReader.readLine();
             while (line != null) {
-                
-                DataSampleDTO sample = new DataSampleDTO(line);
+
+                final DataSampleDTO sample = new DataSampleDTO(line);
                 datasetList.add(sample);
                 line = fileReader.readLine();
             }
         }
-        
+
         DataSampleDTO[] dataset = new DataSampleDTO[datasetList.size()];
         dataset = datasetList.toArray(dataset);
-        
-        
-        String modelLocation1 = ArgLoader.modelLoc;
-        
+
+
+        final String modelLocation1 = ArgLoader.modelLoc;
+
         api.continueTraining(
-                new File(modelLocation1),
-                dataset,
-                ArgLoader.model != null ? ModelType.valueOf(ArgLoader.model) : ModelType.RESNET50
-        );
-    }
-
-    private static void binaryModelTraining(ImageNetAPI api) throws IllegalArgumentException, IOException  {
-        File datasetFile = new File(ArgLoader.datasetLoc);
-        if (!datasetFile.isFile() || !datasetFile.canRead()) {
-            throw new IllegalArgumentException("There is wrong path to dataset file.");
-        }
-        logger.info("Loading dataset: " + datasetFile.getAbsolutePath());
-
-        List<DataSampleDTO> datasetList = new ArrayList();
-
-        try (final BufferedReader fileReader = new BufferedReader(new FileReader(datasetFile))) {
-            String line = fileReader.readLine();
-            while (line != null) {
-
-                DataSampleDTO sample = new DataSampleDTO(line);
-                datasetList.add(sample);
-                line = fileReader.readLine();
-            }
-        }
-
-        DataSampleDTO[] dataset = new DataSampleDTO[datasetList.size()];
-        dataset = datasetList.toArray(dataset);
-
-
-        String modelLocation1 = ArgLoader.modelLoc;
-
-        api.binaryTraining(
                 new File(modelLocation1),
                 dataset,
                 ArgLoader.model != null ? ModelType.valueOf(ArgLoader.model) : ModelType.RESNET50

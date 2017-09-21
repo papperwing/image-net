@@ -1,6 +1,6 @@
 package cz.muni.fi.image.net.core.manager;
 
-import cz.muni.fi.image.net.core.dataset.processor.DataSetProcessor;
+import cz.muni.fi.image.net.core.dataset.processor.DataSetTransform;
 import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Trainer for training neural network.
  *
- * @author Jakub Peschel
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
 public class ImageNetTrainer {
 
@@ -57,6 +57,7 @@ public class ImageNetTrainer {
 
     /**
      * Constructor of {@link ImageNetTrainer}
+     *
      * @param conf global configuration
      */
     public ImageNetTrainer(
@@ -68,7 +69,6 @@ public class ImageNetTrainer {
     }
 
     /**
-     *
      * @param dataset
      * @return
      */
@@ -78,7 +78,7 @@ public class ImageNetTrainer {
 
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
 
-        if (this.conf.isDebug()){
+        if (this.conf.isDebug()) {
             Nd4j.getExecutioner().setProfilingMode(OpExecutioner.ProfilingMode.ANY_PANIC);
         }
 
@@ -88,7 +88,7 @@ public class ImageNetTrainer {
         printDatasetStatistics(dataset);
         printDatasetStatistics(testSet);
 
-        DataSetProcessor processor = new DataSetProcessor(conf, modelWrapper.getType());
+        final DataSetTransform processor = new DataSetTransform(conf, modelWrapper.getType());
 
         final DataSetIterator trainIterator = processor.presaveDataSetIterator(
                 processor.prepareDataSetIterator(dataset),
@@ -119,8 +119,6 @@ public class ImageNetTrainer {
     }
 
     /**
-     *
-     *
      * @param testIterator
      * @param trainIterator
      * @param labels
@@ -232,7 +230,6 @@ public class ImageNetTrainer {
 
 
     /**
-     *
      * @param model
      * @param trainDataSet
      * @param testDataSet
@@ -294,7 +291,6 @@ public class ImageNetTrainer {
     }
 
     /**
-     *
      * @param model
      * @param trainDataSet
      * @param testDataSet
@@ -366,7 +362,7 @@ public class ImageNetTrainer {
             final DataSetIterator trainDataSet,
             final DataSetIterator testDataSet,
             final String tempDirLoc
-    ){
+    ) {
         ParallelWrapper wrapper = new ParallelWrapper.Builder(model)
                 .prefetchBuffer(1)
                 .workers(this.conf.getGPUCount())
@@ -376,7 +372,7 @@ public class ImageNetTrainer {
                 .build();
 
         int actualEpoch = 0;
-        while (actualEpoch < this.conf.getEpoch()){
+        while (actualEpoch < this.conf.getEpoch()) {
             wrapper.fit(trainDataSet);
         }
         return model;

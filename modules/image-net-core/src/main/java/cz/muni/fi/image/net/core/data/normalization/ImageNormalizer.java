@@ -6,39 +6,39 @@ import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.linalg.dataset.api.preprocessor.VGG16ImagePreProcessor;
 
 /**
+ * Selector of suitable {@link DataNormalization}
+ *
  * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
 public class ImageNormalizer {
 
     ModelType modelType;
 
-    public ImageNormalizer() {
-    }
 
+    /**
+     * Constructor of {@link ImageNormalizer}
+     *
+     * @param modelType {@link ModelType} of underlying model
+     */
     public ImageNormalizer(ModelType modelType) {
         this.modelType = modelType;
     }
 
+    /**
+     * Getter of suitable {@link DataNormalization}
+     */
     public DataNormalization getDataNormalization() {
-        if (modelType == null) {
-            throw new IllegalStateException("Default modelType was not set. " +
-                    "Please use getDataNormalization(ModelType modelType) method");
-        }
-        return getDataNormalization(modelType);
-    }
-
-    public DataNormalization getDataNormalization(ModelType modelType) {
         switch (modelType) {
             case RESNET50:
-                return new ImagePreProcessingScaler(-1,1);
+                return new ImagePreProcessingScaler(-1, 1);
             case VGG16:
                 return new VGG16ImagePreProcessor();
             case LENET:
                 return new VGG16ImagePreProcessor();
             case ALEXNET:
-                return new ImagePreProcessingScaler(-1,1);
+                return new ImagePreProcessingScaler(-1, 1);
             default:
-                return new VGG16ImagePreProcessor();
+                return new ImagePreProcessingScaler(-1, 1);
         }
     }
 }

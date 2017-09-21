@@ -35,8 +35,8 @@ public class ImageNetClassifier {
     protected final NeuralNetModelWrapper modelWrapper;
 
     /**
-     *
      * Constructor of {@link ImageNetClassifier}
+     *
      * @param modelWrapper
      */
     public ImageNetClassifier(
@@ -59,9 +59,9 @@ public class ImageNetClassifier {
                 images.add(generateINDArray(new File(imageLocation)));
             }
 
-            Model model = modelWrapper.getModel();
-            List<INDArray> outputArray = new ArrayList<>();
-            for (INDArray input : images) {
+            final Model model = modelWrapper.getModel();
+            final List<INDArray> outputArray = new ArrayList<>();
+            for (final INDArray input : images) {
                 if (model instanceof MultiLayerNetwork) {
                     outputArray.add(((MultiLayerNetwork) model).output(input));
                 } else {

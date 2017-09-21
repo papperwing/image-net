@@ -68,7 +68,7 @@ public class DownloadStatistics {
     public void setOnDisk(int onDisk) {
         this.onDisk = onDisk;
     }
-    
+
     public void addOnDisk() {
         this.onDisk++;
     }
@@ -95,6 +95,6 @@ public class DownloadStatistics {
                 .toString();
         return msg;
     }
-    
-    
+
+
 }

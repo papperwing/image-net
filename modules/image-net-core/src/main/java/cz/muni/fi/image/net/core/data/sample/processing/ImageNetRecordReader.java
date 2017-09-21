@@ -7,6 +7,7 @@ import cz.muni.fi.image.net.core.manager.LabelHelper;
 import cz.muni.fi.image.net.core.objects.DataSample;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.objects.Label;
+
 import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.DataInputStream;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
 import org.datavec.api.conf.Configuration;
 import org.datavec.api.records.Record;
 import org.datavec.api.records.metadata.RecordMetaData;
@@ -36,8 +38,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Custom implementation of {@link org.datavec.api.records.reader.RecordReader} for this library.
  *
- * @author Jakub Peschel
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
 public class ImageNetRecordReader extends BaseRecordReader {
 
@@ -71,31 +74,65 @@ public class ImageNetRecordReader extends BaseRecordReader {
 
     }
 
-    public ImageNetRecordReader(int imageWidth, int imageHeight, int imageChannel, ModelType modelType) {
+    public ImageNetRecordReader(
+            final int imageWidth,
+            final int imageHeight,
+            final int imageChannel,
+            final ModelType modelType
+    ) {
         this.imageWidth = imageWidth;
         this.imageHeight = imageHeight;
         this.imageChannel = imageChannel;
-        this.transformator =  new ImageTransformator(modelType, new int[] {imageWidth, imageHeight, imageChannel});
+        this.transformator = new ImageTransformator(modelType, new int[]{imageWidth, imageHeight, imageChannel});
         this.normalizer = new ImageNormalizer(modelType);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void initialize(InputSplit split) throws IOException, InterruptedException {
+    public void initialize(final InputSplit split) throws IOException, InterruptedException {
         throw new UnsupportedOperationException("ImageNetRecordReader doesnt use input split");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void initialize(Configuration conf, InputSplit split) throws IOException, InterruptedException {
+    public void initialize(
+            final Configuration conf,
+            final InputSplit split
+    ) throws IOException, InterruptedException {
         this.conf = conf;
         this.initialize(split);
     }
 
-    public void initialize(Configuration conf, DataSet dataSet, DataNormalization dataNormalizer) {
+    /**
+     * Initialization of {@link ImageNetRecordReader}
+     *
+     * @param conf           {@link Configuration}
+     * @param dataSet        {@link DataSet}
+     * @param dataNormalizer {@link DataNormalization}
+     */
+    public void initialize(
+            final Configuration conf,
+            final DataSet dataSet,
+            final DataNormalization dataNormalizer
+    ) {
         this.conf = conf;
         this.initialize(dataSet, dataNormalizer);
     }
 
-    public void initialize(DataSet dataSet, DataNormalization dataNormalizer) {
+    /**
+     * Initialization of {@link ImageNetRecordReader}
+     *
+     * @param dataSet        {@link DataSet}
+     * @param dataNormalizer {@link DataNormalization}
+     */
+    public void initialize(
+            final DataSet dataSet,
+            final DataNormalization dataNormalizer
+    ) {
         this.dataSet = dataSet;
         this.labels = dataSet.getLabels();
         List<DataSample> randomList = new ArrayList(dataSet.getData());
@@ -108,6 +145,9 @@ public class ImageNetRecordReader extends BaseRecordReader {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Writable> next() {
         if (iterator != null && iterator.hasNext()) {
@@ -136,16 +176,25 @@ public class ImageNetRecordReader extends BaseRecordReader {
         throw new IllegalStateException("No more elements");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean hasNext() {
         return iterator.hasNext();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<String> getLabels() {
         return LabelHelper.translate(labels);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void reset() {
         List<DataSample> randomList = new ArrayList(dataSet.getData());
@@ -153,17 +202,23 @@ public class ImageNetRecordReader extends BaseRecordReader {
         this.iterator = randomList.iterator();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<Writable> record(URI uri, DataInputStream dataInputStream) throws IOException {
+    public List<Writable> record(
+            final URI uri,
+            final DataInputStream dataInputStream
+    ) throws IOException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public List<Writable> record(ImageNetRecordMetaData metaData) {
-        DataSample sample = dataSet.getData().get(Integer.parseInt(metaData.getLocation()));
+    public List<Writable> record(final ImageNetRecordMetaData metaData) {
+        final DataSample sample = dataSet.getData().get(Integer.parseInt(metaData.getLocation()));
         try {
 
-            List<Writable> ret = transformator.transformImage(currentSample.getImageLocation());
-            for (Label label : labels) {
+            final List<Writable> ret = transformator.transformImage(currentSample.getImageLocation());
+            for (final Label label : labels) {
                 //TODO: this part is specifical for binary multi-label usage. Need to be rewriten for general imageclassification usage
                 final IntWritable intWritable;
                 if (sample.getLabelSet().contains(label)) {
@@ -187,22 +242,22 @@ public class ImageNetRecordReader extends BaseRecordReader {
     }
 
     @Override
-    public Record loadFromMetaData(RecordMetaData recordMetaData) throws IOException {
+    public Record loadFromMetaData(final RecordMetaData recordMetaData) throws IOException {
         return loadFromMetaData(Collections.singletonList(recordMetaData)).get(0);
     }
 
     @Override
-    public List<Record> loadFromMetaData(List<RecordMetaData> recordMetaDatas) throws IOException {
-        List<Record> out = new ArrayList<>();
-        for (RecordMetaData meta : recordMetaDatas) {
+    public List<Record> loadFromMetaData(final List<RecordMetaData> recordMetaDatas) throws IOException {
+        final List<Record> out = new ArrayList<>();
+        for (final RecordMetaData meta : recordMetaDatas) {
             List<Writable> next;
             if (meta instanceof ImageNetRecordMetaData) {
                 next = record((ImageNetRecordMetaData) meta);
             } else {
-                URI uri = meta.getURI();
-                File f = new File(uri);
+                final URI uri = meta.getURI();
+                final File f = new File(uri);
 
-                try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(f)))) {
+                try (final DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(f)))) {
                     next = record(uri, dis);
                 }
             }
@@ -213,18 +268,24 @@ public class ImageNetRecordReader extends BaseRecordReader {
 
     /**
      * This RecordReader is not working with streams. Method do nothing.
-     *
+     * <p>
      * {@link Closeable#close()}
      */
     @Override
     public void close() throws IOException {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setConf(Configuration conf) {
         this.conf = conf;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Configuration getConf() {
         return conf;

@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  *
- * @author jpeschel
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
 public interface DataSet {
 

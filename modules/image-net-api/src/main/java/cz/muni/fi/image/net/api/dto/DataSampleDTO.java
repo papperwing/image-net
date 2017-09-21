@@ -31,27 +31,31 @@ public class DataSampleDTO {
     /**
      * DataSample loaded from csv format line with {@link DataSampleDTO#SEPARATOR} and {@link DataSampleDTO#LABEL_SEPARATOR}
      *
-     * @param csvLine String in format of csv
-     * @throws MalformedURLException
+     * @param csvLine {@link String}in format of csv
      * @throws IOException
      */
-    public DataSampleDTO(String csvLine) throws MalformedURLException, IOException {
+    public DataSampleDTO(String csvLine) throws IOException {
         this(csvLine, SEPARATOR, LABEL_SEPARATOR);
     }
 
     /**
-     * @param csvLine
-     * @param separator
-     * @param labelSeparator
-     * @throws MalformedURLException
+     * Constructor of {@link DataSampleDTO}
+     *
+     * @param csvLine        {@link String}in format of csv
+     * @param separator      columns separator
+     * @param labelSeparator label names separator
      * @throws IOException
      */
-    public DataSampleDTO(String csvLine, char separator, char labelSeparator) throws MalformedURLException, IOException {
+    public DataSampleDTO(
+            final String csvLine,
+            final char separator,
+            final char labelSeparator
+    ) throws IOException {
         this.separator = separator;
         this.labelSeparator = labelSeparator;
-        InputStream stream = new ByteArrayInputStream(csvLine.getBytes(StandardCharsets.UTF_8));
-        CSVReader reader = new CSVReader(new InputStreamReader(stream, StandardCharsets.UTF_8), separator, '\"');
-        String[] params = reader.readNext();
+        final InputStream stream = new ByteArrayInputStream(csvLine.getBytes(StandardCharsets.UTF_8));
+        final CSVReader reader = new CSVReader(new InputStreamReader(stream, StandardCharsets.UTF_8), separator, '\"');
+        final String[] params = reader.readNext();
         if (params.length < 2) {
             throw new IllegalArgumentException("csvLine has missing parameters");
         }
@@ -84,7 +88,7 @@ public class DataSampleDTO {
 
     @Override
     public String toString() {
-        StringBuilder message = new StringBuilder();
+        final StringBuilder message = new StringBuilder();
         message.append("URL: ").append(url.toString()).append(System.lineSeparator());
         message.append("Labels: ").append(labels).append(System.lineSeparator());
         return message.toString();
@@ -103,7 +107,7 @@ public class DataSampleDTO {
                 .append(separator)
                 .append('"');
         int index = 0;
-        for (String label : labels) {
+        for (final String label : labels) {
             if (index != 0) {
                 csvLine.append(labelSeparator);
             }

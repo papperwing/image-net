@@ -24,25 +24,25 @@ public class ResnetMemoryConsumptionTest {
     @Test
     public void ResnetMemoryConsumptionTest() {
 
-        Configuration config = new Configuration();
+        final Configuration config = new Configuration();
         config.setTempFolder(TEMP_PATH);
         config.setEpoch(10);
 
         final ModelBuilder modelBuilder = new ModelBuilderImpl(config);
 
-        NeuralNetModelWrapper model = modelBuilder.createModel(
+        final NeuralNetModelWrapper model = modelBuilder.createModel(
                 ModelType.RESNET50,
                 new DummyDataSet()
         );
 
         final TestTrainer trainer = new TestTrainer(config, model);
 
-        DataSetIterator testIterator = new ExistingMiniBatchDataSetIterator(
+        final DataSetIterator testIterator = new ExistingMiniBatchDataSetIterator(
                 new File(config.getTempFolder() + "/test/test"),
                 "test-%d.bin"
         );
 
-        DataSetIterator trainIterator = new ExistingMiniBatchDataSetIterator(
+        final DataSetIterator trainIterator = new ExistingMiniBatchDataSetIterator(
                 new File(config.getTempFolder() + "/test/train"),
                 "train-%d.bin"
         );

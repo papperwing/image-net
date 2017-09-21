@@ -1,7 +1,6 @@
 package cz.muni.fi.image.net.core.image.transform;
 
-import cz.muni.fi.image.net.core.data.sample.processing.ImageNetRecordReader;
-import cz.muni.fi.image.net.core.dataset.processor.DataSetProcessor;
+import cz.muni.fi.image.net.core.dataset.processor.DataSetTransform;
 import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.image.visualization.INDAVisualizer;
 import cz.muni.fi.image.net.core.objects.Configuration;
@@ -12,7 +11,6 @@ import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.transform.ImageTransform;
 import org.datavec.image.transform.PipelineImageTransform;
 import org.datavec.image.transform.ShowImageTransform;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -21,16 +19,13 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by jpeschel on 17.7.17.
  */
-public class ImageTransformatorTest {
+public class ImageTransformTest {
 
     @Ignore("Debug visual test")
     @Test
@@ -145,7 +140,7 @@ public class ImageTransformatorTest {
             }
         };
 
-        DataSetProcessor processor = new DataSetProcessor(new Configuration(), ModelType.RESNET50);
+        DataSetTransform processor = new DataSetTransform(new Configuration(), ModelType.RESNET50);
         DataSetIterator iterator = processor.presaveDataSetIterator(processor.prepareDataSetIterator(set), ModelType.RESNET50, "test");
 
         while(iterator.hasNext()){

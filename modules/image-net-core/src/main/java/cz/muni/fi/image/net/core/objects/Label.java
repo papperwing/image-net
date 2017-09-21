@@ -1,14 +1,13 @@
 package cz.muni.fi.image.net.core.objects;
 
 /**
- *
- * @author Jakub Peschel
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
-public class Label implements Comparable<Label>{
+public class Label implements Comparable<Label> {
 
     private final String labelName;
 
-    public Label(String labelName) {
+    public Label(final String labelName) {
         this.labelName = labelName;
     }
 
@@ -17,7 +16,7 @@ public class Label implements Comparable<Label>{
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -30,7 +29,7 @@ public class Label implements Comparable<Label>{
         }
         return true;
     }
- 
+
     @Override
     public int hashCode() {
         int hash = 5;
@@ -38,7 +37,7 @@ public class Label implements Comparable<Label>{
         return hash;
     }
 
-    public int compareTo(Label t) {
+    public int compareTo(final Label t) {
         return this.getLabelName().compareTo(t.getLabelName());
     }
 

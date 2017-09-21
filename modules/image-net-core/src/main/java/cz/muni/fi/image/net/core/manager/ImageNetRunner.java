@@ -10,9 +10,9 @@ import java.util.List;
 /**
  * Class is used for running neural network base action:
  * <ul>
- *     <li>training model</li>
- *     <li>clasification of image</li>
- *     <li>evaluating model</li>
+ * <li>training model</li>
+ * <li>clasification of image</li>
+ * <li>evaluating model</li>
  * </ul>
  *
  * @author Jakub Peschel
@@ -23,6 +23,7 @@ public class ImageNetRunner {
 
     /**
      * Constructor of {@link ImageNetRunner}
+     *
      * @param conf global {@link Configuration}
      */
     public ImageNetRunner(Configuration conf) {
@@ -30,7 +31,6 @@ public class ImageNetRunner {
     }
 
     /**
-     *
      * @param model
      * @param dataset
      * @return
@@ -44,7 +44,6 @@ public class ImageNetRunner {
     }
 
     /**
-     *
      * @param modelWrapper
      * @param imageLocations
      * @return
@@ -59,8 +58,6 @@ public class ImageNetRunner {
     }
 
     /**
-     *
-     *
      * @param modelWrapper
      * @param dataSet
      * @return

@@ -25,16 +25,16 @@ public class ImageTransformator {
     BaseImageLoader loader;
     int[] inputShape;
 
-    public ImageTransformator(ModelType modelType) {
+    public ImageTransformator(final ModelType modelType) {
         this(
                 modelType,
-                new int[]{224,224,3}
-                );
+                new int[]{224, 224, 3}
+        );
     }
 
     public ImageTransformator(
-            ModelType modelType,
-            int[] inputShape
+            final ModelType modelType,
+            final int[] inputShape
     ) {
         if (inputShape.length != 3) {
             throw new IllegalArgumentException("Expected length of inputShape 3 but got: " + inputShape.length);
@@ -48,10 +48,10 @@ public class ImageTransformator {
         );
     }
 
-    public List<Writable> transformImage(String fileLocation) throws IOException {
+    public List<Writable> transformImage(final String fileLocation) throws IOException {
 
-        File imageFile = new File(fileLocation);
-        INDArray row = loader.asMatrix(imageFile);
+        final File imageFile = new File(fileLocation);
+        final INDArray row = loader.asMatrix(imageFile);
 
         if (normalizer != null) {
             normalizer.transform(row);
@@ -62,10 +62,11 @@ public class ImageTransformator {
     }
 
 
-    public ImageTransform getTransformation(ModelType modelType) {
+    public ImageTransform getTransformation(final ModelType modelType) {
         final List<Pair<ImageTransform, Double>> pipeline = new LinkedList<>();
         int biggerWidth = (int) (inputShape[0] * 1.35);//multiplier just for sake of getting cca 300 pixel size before random cropping
         int biggerHeight = (int) (inputShape[1] * 1.35);//multiplier just for sake of getting cca 300 pixel size before random cropping
+        //TODO: add sampling option for unbalanced classes
         pipeline.add(
                 new Pair(
                         new ResizeImageTransform(

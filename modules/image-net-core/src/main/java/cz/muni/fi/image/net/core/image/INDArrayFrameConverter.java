@@ -104,7 +104,7 @@ public class INDArrayFrameConverter extends FrameConverter<INDArray> {
             tensor3D.sub(min);
             tensor3D.mul(255 / (max - min));
         }
-        tensor3D.sub(256/2);
+        tensor3D.sub(256 / 2);
     }
 
 }

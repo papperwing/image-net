@@ -20,7 +20,10 @@ public class UrlImage {
 
     private final Set<Label> labels;
 
-    public UrlImage(URL url, Set<Label> labels) {
+    public UrlImage(
+            final URL url,
+            final Set<Label> labels
+    ) {
         this.url = url;
         this.labels = labels;
     }

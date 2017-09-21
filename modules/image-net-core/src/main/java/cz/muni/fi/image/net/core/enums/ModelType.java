@@ -1,8 +1,7 @@
 package cz.muni.fi.image.net.core.enums;
 
 /**
- *
- * @author jpeschel
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
 public enum ModelType {
     VGG16,

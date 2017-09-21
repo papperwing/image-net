@@ -13,26 +13,27 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import java.io.*;
 import java.util.*;
 
-import static org.junit.Assert.*;
-
-public class DataSetProcessorTest {
+/**
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
+ */
+public class DataSetTransformTest {
 
     @Before
     public void setUpDataSet() throws Exception {
         final File csv = new File(this.getClass().getClassLoader().getResource("testData.csv").getFile());
         final File imagesDir = new File(this.getClass().getClassLoader().getResource("images").getFile());
-        InputStreamReader reader = new FileReader(csv);
-        BufferedReader bfReader = new BufferedReader(reader);
+        final InputStreamReader reader = new FileReader(csv);
+        final BufferedReader bfReader = new BufferedReader(reader);
         String line;
-        List<DataSample> samples = new ArrayList<>();
-        Set<Label> labels = new HashSet<>();
+        final List<DataSample> samples = new ArrayList<>();
+        final Set<Label> labels = new HashSet<>();
         while ((line = bfReader.readLine()) != null) {
-            String[] splitted = line.split(";");
-            Set<Label> labelSet = new HashSet<>();
-            for (String labelstring : splitted[1].split(",")) {
+            final String[] splitted = line.split(";");
+            final Set<Label> labelSet = new HashSet<>();
+            for (final String labelstring : splitted[1].split(",")) {
                 labelSet.add(new Label(labelstring));
             }
-            DataSample sample = new DataSample(
+            final DataSample sample = new DataSample(
                     imagesDir.getAbsolutePath() + File.separator + splitted[0],
                     labelSet
             );
@@ -52,10 +53,10 @@ public class DataSetProcessorTest {
 
     @Test
     public void prepareDataSetIterator() throws Exception {
-        System.out.println("DataSetProcessorTest.prepareDataSetIterator()");
+        System.out.println("DataSetTransformTest.prepareDataSetIterator()");
 
-        DataSetProcessor processor = new DataSetProcessor(config, ModelType.ALEXNET);
-        DataSetIterator iter = processor.prepareDataSetIterator(dataset);
+        final DataSetTransform processor = new DataSetTransform(config, ModelType.ALEXNET);
+        final DataSetIterator iter = processor.prepareDataSetIterator(dataset);
         while (iter.hasNext()){
             org.nd4j.linalg.dataset.DataSet testSet = iter.next();
             System.out.println();
@@ -68,16 +69,16 @@ public class DataSetProcessorTest {
 
     @Test
     public void presaveDataSetIterator() throws Exception {
-        System.out.println("DataSetProcessorTest.presaveDataSetIterator()");
+        System.out.println("DataSetTransformTest.presaveDataSetIterator()");
 
-        TemporaryFolder temporaryFolder = new TemporaryFolder();
+        final TemporaryFolder temporaryFolder = new TemporaryFolder();
         temporaryFolder.create();
-        File temp = temporaryFolder.getRoot();
+        final File temp = temporaryFolder.getRoot();
 
         config.setTempFolder(temp.getAbsolutePath());
-        DataSetProcessor processor = new DataSetProcessor(config, ModelType.ALEXNET);
-        DataSetIterator iter = processor.presaveDataSetIterator(
-                processor.prepareDataSetIterator(dataset),
+        final DataSetTransform transform = new DataSetTransform(config, ModelType.ALEXNET);
+        final DataSetIterator iter = transform.presaveDataSetIterator(
+                transform.prepareDataSetIterator(dataset),
                 ModelType.ALEXNET,
                 "test"
         );

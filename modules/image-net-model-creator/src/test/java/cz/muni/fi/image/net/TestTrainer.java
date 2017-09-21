@@ -12,17 +12,20 @@ public class TestTrainer extends ImageNetTrainer {
 
 
     public TestTrainer(
-            Configuration conf,
-            NeuralNetModelWrapper model
+            final Configuration conf,
+            final NeuralNetModelWrapper model
     ) {
         super(conf, model);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public NeuralNetModelWrapper trainModel(
-            DataSetIterator testIterator,
-            DataSetIterator trainIterator,
-            List<Label> labels
+            final DataSetIterator testIterator,
+            final DataSetIterator trainIterator,
+            final List<Label> labels
     ) {
         return super.trainModel(
                 testIterator,

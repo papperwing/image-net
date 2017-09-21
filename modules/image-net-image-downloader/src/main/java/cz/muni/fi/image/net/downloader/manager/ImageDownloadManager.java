@@ -20,13 +20,17 @@ import org.slf4j.LoggerFactory;
  */
 public class ImageDownloadManager {
 
-    //TODO: cache of downloaded images. Not necessary to download multipletimes.
     private final Logger logger = LoggerFactory.getLogger(ImageDownloadManager.class);
     private final Configuration conf;
 
     private final ThreadPoolExecutor pool;
 
-    public ImageDownloadManager(Configuration conf) {
+    /**
+     * Constructor of {@link ImageDownloadManager}
+     *
+     * @param conf global {@link Configuration}
+     */
+    public ImageDownloadManager(final Configuration conf) {
         this.conf = conf;
         this.pool = new ThreadPoolExecutor(
                 conf.getCorePoolSize(),
@@ -38,10 +42,16 @@ public class ImageDownloadManager {
 
     }
 
-    public DownloadResult processRequest(final List<UrlImage> requestList) throws IllegalStateException {
-        DownloadResult result = new DownloadResult();
-        for (UrlImage image : requestList) {
-            ImageDownloadThread thread = new ImageDownloadThread(image, result, conf);
+    /**
+     * Downloading images based on request list
+     *
+     * @param requestList {@link List} of {@link UrlImage}
+     * @return {@link DownloadResult}
+     */
+    public DownloadResult processRequest(final List<UrlImage> requestList) {
+        final DownloadResult result = new DownloadResult();
+        for (final UrlImage image : requestList) {
+            final ImageDownloadThread thread = new ImageDownloadThread(image, result, conf);
             pool.execute(thread);
         }
 
@@ -49,7 +59,7 @@ public class ImageDownloadManager {
         while (result.getDataImageList().size() != requestList.size()) {
             logger.info(
                     "Resolved files: "
-                    + result.getDataImageList().size()
+                            + result.getDataImageList().size()
             );
             try {
                 synchronized (result) {
@@ -65,8 +75,8 @@ public class ImageDownloadManager {
         return result;
     }
 
-    private void writeStatistics(DownloadResult result) {
-        for (DataImage image : result.getDataImageList()) {
+    private void writeStatistics(final DownloadResult result) {
+        for (final DataImage image : result.getDataImageList()) {
             switch (image.getState()) {
                 case DOWNLOADED: {
                     result.getStats().addDownloaded();
@@ -82,7 +92,7 @@ public class ImageDownloadManager {
                     result.getStats().addTimedOut();
                     break;
                 }
-                
+
                 case ON_DISK: {
                     result.getStats().addOnDisk();
                     break;

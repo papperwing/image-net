@@ -6,8 +6,7 @@ import org.deeplearning4j.nn.conf.ComputationGraphConfiguration;
 /**
  * Store for network configuration.
  *
- * 
- * @author Jakub Peschel
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
  */
 public class NetworkConfiguration {
     private final ComputationGraphConfiguration config;
@@ -19,5 +18,5 @@ public class NetworkConfiguration {
     public ComputationGraphConfiguration getConfiguration() {
         return config;
     }
-    
+
 }

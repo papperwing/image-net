@@ -38,24 +38,37 @@ import org.nd4j.linalg.ops.transforms.Transforms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Builder for specific model based on statistic of used {@link DataSet}.
+ *
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
+ */
 public class ModelBuilderImpl implements ModelBuilder {
 
     Logger logger = LoggerFactory.getLogger(ModelBuilderImpl.class);
     private final Configuration config;
 
+    /**
+     * Constructor of {@link ModelBuilderImpl}
+     *
+     * @param config global {@link Configuration}
+     */
     public ModelBuilderImpl(Configuration config) {
         this.config = config;
     }
 
     /**
-     * Method takes parameters and create selected modelWrapper.
-     *
-     * @return {@link NeuralNetModelWrapper} with selected modelWrapper
+     * {@inheritDoc}
      */
-    public NeuralNetModelWrapper createModel(ModelType modelType, DataSet dataSet) {
+    @Override
+    public NeuralNetModelWrapper createModel(
+            final ModelType modelType,
+            final DataSet dataSet
+    ) {
+        //TODO: fix and complete other methods (only one working is ALEXNET)
         switch (modelType) {
-            /*case VGG16:
-                return createVggModel(dataSet);*/
+            case VGG16:
+                return createVggModel(dataSet);
             case LENET:
                 return createLeNetModel(dataSet);
             case RESNET50:
@@ -68,11 +81,12 @@ public class ModelBuilderImpl implements ModelBuilder {
 
     /**
      * Create modelWrapper for other use.
+     *
      * @param dataSet Data sample set containing images and labels
      * @return {@link NeuralNetModelWrapper} containing adapted configuration of AlexNet
      */
-    private NeuralNetModelWrapper createAlexNet(DataSet dataSet) {
-        ZooModel zooModel = new AlexNet(
+    private NeuralNetModelWrapper createAlexNet(final DataSet dataSet) {
+        final ZooModel zooModel = new AlexNet(
                 dataSet.getLabels().size(),
                 this.config.getSeed(),
                 1,
@@ -80,22 +94,22 @@ public class ModelBuilderImpl implements ModelBuilder {
         );
 
 
-        Map labelDistribution = dataSet.getLabelDistribution();
+        final Map labelDistribution = dataSet.getLabelDistribution();
 
         float[] floatArray = new float[labelDistribution.size()];
         int index = 0;
-        for(Object oValue : labelDistribution.values()){
-            floatArray[index] = (Integer)oValue;
+        for (Object oValue : labelDistribution.values()) {
+            floatArray[index] = (Integer) oValue;
         }
         INDArray labelCounts = Nd4j.create(floatArray);
         INDArray lossWeights = Nd4j.ones(labelDistribution.size()).sub(Transforms.unitVec(labelCounts));
         logger.debug(lossWeights.data().toString());
 
         Map<Integer, Double> lrSchedule = new LinkedHashMap<>();
-        lrSchedule.put(0,0.0001);
-        lrSchedule.put(3000,0.00001);
-        lrSchedule.put(10000,0.000001);
-        lrSchedule.put(20000,0.0000001);
+        lrSchedule.put(0, 0.0001);
+        lrSchedule.put(3000, 0.00001);
+        lrSchedule.put(10000, 0.000001);
+        lrSchedule.put(20000, 0.0000001);
         MultiLayerNetwork zooModelOriginal = (MultiLayerNetwork) zooModel.init();
         FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                 .learningRate(this.config.getLearningRate())
@@ -140,10 +154,11 @@ public class ModelBuilderImpl implements ModelBuilder {
 
     /**
      * Create modelWrapper for other use.
+     *
      * @param dataSet Data sample set containing images and labels
      * @return {@link NeuralNetModelWrapper} containing adapted configuration of LeNet
      */
-    public NeuralNetModelWrapper createLeNetModel(DataSet dataSet) {
+    public NeuralNetModelWrapper createLeNetModel(final DataSet dataSet) {
         ZooModel zooModel = new LeNet(
                 dataSet.getLabels().size(),
                 this.config.getSeed(),
@@ -171,7 +186,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                             .dist(
                                     new NormalDistribution(
                                             0,
-                                            0.2*(2.0/(500+dataSet.getLabels().size()))
+                                            0.2 * (2.0 / (500 + dataSet.getLabels().size()))
                                     )
                             )
                             .build())//nonlinearity layer
@@ -183,7 +198,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                             .dist(
                                     new NormalDistribution(
                                             0,
-                                            0.2*(2.0/(250+dataSet.getLabels().size()))
+                                            0.2 * (2.0 / (250 + dataSet.getLabels().size()))
                                     )
                             )
                             .build())
@@ -200,10 +215,11 @@ public class ModelBuilderImpl implements ModelBuilder {
 
     /**
      * Create modelWrapper for other use.
+     *
      * @param dataSet Data sample set containing images and labels
      * @return {@link NeuralNetModelWrapper} containing adapted configuration of ResNet50
      */
-    public NeuralNetModelWrapper createResnet50(DataSet dataSet) {
+    public NeuralNetModelWrapper createResnet50(final DataSet dataSet) {
         ZooModel zooModel = new ResNet50(
                 dataSet.getLabels().size(),
                 this.config.getSeed(),
@@ -232,7 +248,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                                     .dist(
                                             new NormalDistribution(
                                                     0,
-                                                    0.2*(2.0/(2048+dataSet.getLabels().size()))
+                                                    0.2 * (2.0 / (2048 + dataSet.getLabels().size()))
                                             )
                                     )
                                     .build(),
@@ -247,7 +263,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                                     .dist(
                                             new NormalDistribution(
                                                     0,
-                                                    0.2*(2.0/(1024+dataSet.getLabels().size()))
+                                                    0.2 * (2.0 / (1024 + dataSet.getLabels().size()))
                                             )
                                     )
                                     .build(),
@@ -262,6 +278,10 @@ public class ModelBuilderImpl implements ModelBuilder {
         } catch (IOException ex) {
             throw new IllegalStateException("Model weights was not loaded", ex);
         }
+    }
+
+    private NeuralNetModelWrapper createVggModel(final DataSet dataSet) {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 
 }

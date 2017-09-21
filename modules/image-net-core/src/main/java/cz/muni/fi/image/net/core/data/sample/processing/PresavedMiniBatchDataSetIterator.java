@@ -13,6 +13,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Custom implementation of {@link DataSetIterator} for this library.
+ *
+ * @author Jakub Peschel (jakubpeschel@gmail.com)
+ */
 public class PresavedMiniBatchDataSetIterator implements DataSetIterator {
 
     public static Logger logger = LoggerFactory.getLogger(PresavedMiniBatchDataSetIterator.class);
@@ -32,11 +37,16 @@ public class PresavedMiniBatchDataSetIterator implements DataSetIterator {
      *
      * @param rootDir the root directory to use
      */
-    public PresavedMiniBatchDataSetIterator(File rootDir) {
+    public PresavedMiniBatchDataSetIterator(
+            final File rootDir
+    ) {
         this(rootDir, DEFAULT_PATTERN);
     }
 
-    public PresavedMiniBatchDataSetIterator(File rootDir, String pattern) {
+    public PresavedMiniBatchDataSetIterator(
+            final File rootDir,
+            final String pattern
+    ) {
         this(rootDir, pattern, false);
     }
 
@@ -49,7 +59,8 @@ public class PresavedMiniBatchDataSetIterator implements DataSetIterator {
     public PresavedMiniBatchDataSetIterator(
             final File rootDir,
             final String pattern,
-            final boolean suffle) {
+            final boolean suffle
+    ) {
 
         this.rootDir = rootDir;
         this.pattern = pattern;
@@ -63,8 +74,8 @@ public class PresavedMiniBatchDataSetIterator implements DataSetIterator {
             }
         };
 
-        String[] filenames = rootDir.list(fileFilter);
-        for (String fileName : filenames) {
+        final String[] filenames = rootDir.list(fileFilter);
+        for (final String fileName : filenames) {
             miniBatches.add(new File(rootDir, fileName));
         }
 
@@ -76,7 +87,7 @@ public class PresavedMiniBatchDataSetIterator implements DataSetIterator {
      * {@inheritDoc}
      */
     @Override
-    public DataSet next(int num) {
+    public DataSet next(final int num) {
         throw new UnsupportedOperationException("Unable to load custom number of examples");
     }
 
@@ -131,7 +142,7 @@ public class PresavedMiniBatchDataSetIterator implements DataSetIterator {
     }
 
     @Override
-    public void setPreProcessor(DataSetPreProcessor preProcessor) {
+    public void setPreProcessor(final DataSetPreProcessor preProcessor) {
         this.dataSetPreProcessor = preProcessor;
     }
 
@@ -158,7 +169,7 @@ public class PresavedMiniBatchDataSetIterator implements DataSetIterator {
     @Override
     public DataSet next() {
         this.currentFile = iterator.next();
-        DataSet ret = new DataSet();
+        final DataSet ret = new DataSet();
         ret.load(currentFile);
         if (dataSetPreProcessor != null)
             dataSetPreProcessor.preProcess(ret);
