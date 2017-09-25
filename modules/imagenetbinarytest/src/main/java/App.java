@@ -199,7 +199,7 @@ public class App {
         ComputationGraph model = (ComputationGraph) (zooModel.initPretrained());
 
         FineTuneConfiguration tuneConfiguration = new FineTuneConfiguration.Builder()
-                .updater(Updater.NESTEROVS)
+                .updater(Updater.ADAM)
                 .learningRate(0.001)
                 .build();
 
@@ -207,7 +207,7 @@ public class App {
                 .removeVertexKeepConnections("fc1000")
                 .fineTuneConfiguration(tuneConfiguration)
                 .addLayer("fc1000",
-                        new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                        new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
                                 .nIn(2048)
                                 .nOut(1)
                                 .weightInit(WeightInit.XAVIER)
