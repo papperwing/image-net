@@ -1,4 +1,3 @@
-
 import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.PathLabelGenerator;
 import org.datavec.api.records.reader.RecordReader;
@@ -15,14 +14,11 @@ import org.datavec.image.transform.*;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
-import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.saver.LocalFileGraphSaver;
 import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculatorCG;
-import org.deeplearning4j.earlystopping.scorecalc.ScoreCalculator;
 import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationCondition;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
 import org.deeplearning4j.eval.Evaluation;
-import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
@@ -31,10 +27,8 @@ import org.deeplearning4j.nn.transferlearning.FineTuneConfiguration;
 import org.deeplearning4j.nn.transferlearning.TransferLearning;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.FileStatsStorage;
-import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.deeplearning4j.zoo.ZooModel;
 import org.deeplearning4j.zoo.model.ResNet50;
@@ -87,11 +81,12 @@ public class App {
                     logger.error("Wrong number of attributes was used.");
                     break;
             }
-        }catch(Exception ex){
-            logger.error("Error occured." , ex);
+        } catch (Exception ex) {
+            logger.error("Error occured.", ex);
         }
     }
-    public static void eval() throws Exception{
+
+    public static void eval() throws Exception {
         ComputationGraph model = ModelSerializer.restoreComputationGraph("bestGraph.bin");
         logger.debug("Loaded model.");
 
@@ -172,13 +167,28 @@ public class App {
 
         logger.debug("Created iterator.");
 
-        Evaluation evaluation = model.evaluate(evalIterator);
+        Evaluation evaluation = new Evaluation(1) {
+            @Override
+            public String stats() {
+                StringBuilder builder = new StringBuilder();
+                builder.append("TP|TN|FP|FN\n");
+                builder.append(
+                        truePositives.getCount(0) + " | " +
+                                trueNegatives.getCount(0) + " | " +
+                                falsePositives.getCount(0) + " | " +
+                                falseNegatives.getCount(0) + "\n"
+                );
+                builder.append(super.stats());
+                return builder.toString();
+            }
+        };
+        model.doEvaluation(evalIterator, evaluation);
 
         logger.info(evaluation.stats());
 
     }
 
-    public static void train()throws Exception{
+    public static void train() throws Exception {
         ZooModel zooModel = new ResNet50(
                 1,
                 new Random().nextInt(),
@@ -189,7 +199,7 @@ public class App {
         ComputationGraph model = (ComputationGraph) (zooModel.initPretrained());
 
         FineTuneConfiguration tuneConfiguration = new FineTuneConfiguration.Builder()
-                .updater(Updater.ADAM)
+                .updater(Updater.NESTEROVS)
                 .learningRate(0.001)
                 .build();
 
@@ -348,10 +358,12 @@ class MyPathGenerator implements PathLabelGenerator {
     }
 }
 
-class CustomImageRecordReader extends ImageRecordReader{
-    /** Loads images with given height, width, and channels, appending labels returned by the generator. */
+class CustomImageRecordReader extends ImageRecordReader {
+    /**
+     * Loads images with given height, width, and channels, appending labels returned by the generator.
+     */
     public CustomImageRecordReader(int height, int width, int channels, PathLabelGenerator labelGenerator,
-                             ImageTransform imageTransform) {
+                                   ImageTransform imageTransform) {
         super(height, width, channels, labelGenerator, imageTransform);
     }
 
@@ -403,7 +415,7 @@ class CustomImageRecordReader extends ImageRecordReader{
             cnt++;
         }
 
-        INDArray features = Nd4j.createUninitialized(new int[] {cnt, channels, height, width}, 'c');
+        INDArray features = Nd4j.createUninitialized(new int[]{cnt, channels, height, width}, 'c');
         Nd4j.getAffinityManager().tagLocation(features, AffinityManager.Location.HOST);
         for (int i = 0; i < cnt; i++) {
             try {
