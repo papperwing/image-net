@@ -33,8 +33,8 @@ public class App {
         } catch (IllegalArgumentException e) {
             logger.error("Error:", e);
             Args.usage(ArgLoader.class);
-            System.exit(1);
-            return;
+            //System.exit(1);
+            //return;
         }
         logger.info("Started command line interface.");
 
@@ -97,6 +97,7 @@ public class App {
         }
 
         ImageNetAPI api = new ImageNetAPI(config);
+        logger.info(config.toString());
 
         switch (ArgLoader.method) {
             case "TRAIN":

@@ -1,5 +1,8 @@
 package cz.muni.fi.image.net.core.objects;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Field;
 import java.util.Random;
 
 /**
@@ -11,6 +14,7 @@ public class Configuration {
     /**
      * Location used for storing images. By default system use linux "/tmp/imageNet".
      */
+    @Desc("Image location:")
     private String imageDownloadFolder = "/tmp/imageNet";
 
     /**
@@ -36,6 +40,7 @@ public class Configuration {
     /**
      * Location used for storing models. By default system use linux "/tmp/imageNet".
      */
+    @Desc("Temp folder:")
     private String tempFolder = "/tmp/imageNet";
 
     /**
@@ -61,6 +66,7 @@ public class Configuration {
     /**
      * Number of threads
      */
+    @Desc("Amount of download workers:")
     private int corePoolSize = 10;
 
     public int getCorePoolSize() {
@@ -76,6 +82,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Maximum amount of workers:")
     private int maximumPoolSize = 10;
 
     public int getMaximumPoolSize() {
@@ -92,6 +99,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Keep alive time:")
     private int keepAliveTime = 10;
 
     public int getKeepAliveTime() {
@@ -107,6 +115,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Amount of time")
     private int epoch = 10000;
 
     public int getEpoch() {
@@ -122,6 +131,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Seed:")
     private int seed = new Random().nextInt();
 
     public int getSeed() {
@@ -133,25 +143,11 @@ public class Configuration {
     }
     //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="iterations">
-    /**
-     *
-     */
-    private int iterations = 4;
-
-    public int getIterations() {
-        return iterations;
-    }
-
-    public void setIterations(int iterations) {
-        this.iterations = iterations;
-    }
-    //</editor-fold>
-
     //<editor-fold defaultstate="collapsed" desc="learningRate">
     /**
      *
      */
+    @Desc("Learning rate:")
     private double learningRate = 0.1;
 
     public double getLearningRate() {
@@ -167,6 +163,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Amount of failed downloads to continue:")
     private int failedTreshold = 1000;
 
     public int getFailedTreshold() {
@@ -182,6 +179,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Is timed:")
     private boolean timed = false;
 
     public boolean isTimed() {
@@ -197,6 +195,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Time:")
     private long time = 0;
 
     public long getTime() {
@@ -212,6 +211,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Amount of computing processors:")
     private int GPUCount = 1;
 
     public int getGPUCount() {
@@ -227,6 +227,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Batch size:")
     private int batchSize = 32;
 
     public int getBatchSize() {
@@ -242,6 +243,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Dropout:")
     private double dropout = 0;
 
     public double getDropout() {
@@ -257,6 +259,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("L1")
     private double l1 = 0;
 
     public double getL1() {
@@ -272,6 +275,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("L2")
     private double l2 = 0;
 
     public double getL2() {
@@ -287,6 +291,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Output layer learning rate:")
     private double oLearningRate = 0.1;
 
     public double getOLearningRate() {
@@ -302,6 +307,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Output layer l2:")
     private double outputL2 = 0;
 
     public double getOutputL2() {
@@ -313,25 +319,11 @@ public class Configuration {
     }
     //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="Momentum">
-    /**
-     *
-     */
-    private double momentum = 0;
-
-    public double getMomentum() {
-        return momentum;
-    }
-
-    public void setMomentum(double momentum) {
-        this.momentum = momentum;
-    }
-    //</editor-fold>
-
     //<editor-fold defaultstate="collapsed" desc="JavaMinorVersion">
     /**
      *
      */
+    @Desc("Java minor version:")
     private double javaMinorVersion = 8;
 
     public double getJavaMinorVersion() {
@@ -347,6 +339,7 @@ public class Configuration {
     /**
      *
      */
+    @Desc("Is debug:")
     private boolean debug = false;
 
     public boolean isDebug() {
@@ -358,4 +351,27 @@ public class Configuration {
     }
     //</editor-fold>
 
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        for (Field field : Configuration.class.getDeclaredFields()) {
+            try {
+                builder.append(field.getAnnotation(Desc.class).value())
+                        .append(" ")
+                        .append(field.get(this).toString())
+                        .append("\n");
+            } catch (IllegalAccessException ex) {
+                builder.append("Error occured for ")
+                        .append(field.getAnnotation(Desc.class).value());
+            }
+        }
+        return builder.toString();
+    }
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface Desc {
+    String value();
 }

@@ -6,6 +6,7 @@ import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.objects.Label;
 import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
+import org.bytedeco.javacpp.Pointer;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.saver.LocalFileGraphSaver;
@@ -66,6 +67,9 @@ public class ImageNetTrainer {
     ) {
         this.conf = conf;
         this.modelWrapper = modelWrapper;
+        logger.info("Memory usage for javacpp:\n" +
+                "maxbytes: " + Pointer.maxBytes() + "\n" +
+                "maxPhysicalBytes: " + Pointer.maxPhysicalBytes());
     }
 
     /**
@@ -102,20 +106,11 @@ public class ImageNetTrainer {
                 "test"
         );
 
-        /*
         return trainModel(
                 testIterator,
                 trainIterator,
                 dataset.getLabels()
-        );*/
-
-        setupStatInterface(modelWrapper.getModel());
-        return new NeuralNetModelWrapper(testRunEarlyStoppingGPU(modelWrapper.getModel(),
-                testIterator,
-                trainIterator,
-                ""),
-                dataset.getLabels(),
-                ModelType.ALEXNET);
+        );
     }
 
     /**

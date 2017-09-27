@@ -93,30 +93,11 @@ public class ModelBuilderImpl implements ModelBuilder {
                 WorkspaceMode.SEPARATE
         );
 
-
-        final Map labelDistribution = dataSet.getLabelDistribution();
-
-        float[] floatArray = new float[labelDistribution.size()];
-        int index = 0;
-        for (Object oValue : labelDistribution.values()) {
-            floatArray[index] = (Integer) oValue;
-        }
-        INDArray labelCounts = Nd4j.create(floatArray);
-        INDArray lossWeights = Nd4j.ones(labelDistribution.size()).sub(Transforms.unitVec(labelCounts));
-        logger.debug(lossWeights.data().toString());
-
-        Map<Integer, Double> lrSchedule = new LinkedHashMap<>();
-        lrSchedule.put(0, 0.0001);
-        lrSchedule.put(3000, 0.00001);
-        lrSchedule.put(10000, 0.000001);
-        lrSchedule.put(20000, 0.0000001);
         MultiLayerNetwork zooModelOriginal = (MultiLayerNetwork) zooModel.init();
         FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                 .learningRate(this.config.getLearningRate())
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(new Adam())
-                .learningRatePolicy(LearningRatePolicy.Schedule)
-                .learningRateSchedule(lrSchedule)
                 .seed(this.config.getSeed())
                 .l1(this.config.getL1())
                 .l2(this.config.getL2())
@@ -231,6 +212,8 @@ public class ModelBuilderImpl implements ModelBuilder {
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                    .l1(this.config.getL1())
+                    .l2(this.config.getL2())
                     .updater(Updater.NESTEROVS)
                     .seed(this.config.getSeed())
                     .build();
@@ -243,14 +226,9 @@ public class ModelBuilderImpl implements ModelBuilder {
                             new DenseLayer.Builder()
                                     .nIn(2048)
                                     .nOut(1024)
-                                    .activation(Activation.RELU)
-                                    .weightInit(WeightInit.DISTRIBUTION)
-                                    .dist(
-                                            new NormalDistribution(
-                                                    0,
-                                                    0.2 * (2.0 / (2048 + dataSet.getLabels().size()))
-                                            )
-                                    )
+                                    .activation(Activation.LEAKYRELU)
+                                    .weightInit(WeightInit.RELU)
+                                    .biasInit(0)
                                     .build(),
                             "flatten_3"
                     )
@@ -259,13 +237,8 @@ public class ModelBuilderImpl implements ModelBuilder {
                                     .nIn(1024)
                                     .nOut(dataSet.getLabels().size())
                                     .activation(Activation.SIGMOID)
-                                    .weightInit(WeightInit.DISTRIBUTION)
-                                    .dist(
-                                            new NormalDistribution(
-                                                    0,
-                                                    0.2 * (2.0 / (1024 + dataSet.getLabels().size()))
-                                            )
-                                    )
+                                    .weightInit(WeightInit.XAVIER)
+                                    .dropOut(0)
                                     .build(),
                             "nonlinearity"
                     )

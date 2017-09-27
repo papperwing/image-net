@@ -52,4 +52,8 @@ public class ArgLoader {
     public static Double oLearningRate;
     @Argument(alias = "jv", description = "Java minor version", required = false)
     public static Double javaVersion;
+    @Argument(alias = "Dorg.bytedeco.javacpp.maxbytes", description = "ignored", required = false)
+    public static String maxbytes;
+    @Argument(alias = "Dorg.bytedeco.javacpp.maxPhysicalBytes", description = "ignored", required = false)
+    public static String maxPhysicalBytes;
 }
