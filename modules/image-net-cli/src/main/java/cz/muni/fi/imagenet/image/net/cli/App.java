@@ -33,8 +33,8 @@ public class App {
         } catch (IllegalArgumentException e) {
             logger.error("Error:", e);
             Args.usage(ArgLoader.class);
-            //System.exit(1);
-            //return;
+            System.exit(1);
+            return;
         }
         logger.info("Started command line interface.");
 

@@ -16,7 +16,7 @@ public interface ModelBuilder {
      *
      * @param modelType specified {@link ModelType} of underlying network architecture
      * @param dataSet   {@link DataSet}
-     * @return pretrianed model stored in {@link NeuralNetModelWrapper}
+     * @return pretrained model stored in {@link NeuralNetModelWrapper}
      */
     NeuralNetModelWrapper createModel(
             ModelType modelType,
