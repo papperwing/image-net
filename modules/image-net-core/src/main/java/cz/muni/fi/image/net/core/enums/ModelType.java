@@ -7,5 +7,5 @@ public enum ModelType {
     VGG16,
     RESNET50,
     LENET,
-    ALEXNET
+    ALEXNET;
 }

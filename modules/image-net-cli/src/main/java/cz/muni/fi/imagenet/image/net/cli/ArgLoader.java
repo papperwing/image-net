@@ -52,4 +52,7 @@ public class ArgLoader {
     public static Double oLearningRate;
     @Argument(alias = "jv", description = "Java minor version", required = false)
     public static Double javaVersion;
+    @Argument(alias = "ui", description = "UI mode", required = false)
+    public static String uiMode;
+
 }

@@ -1,5 +1,7 @@
 package cz.muni.fi.image.net.core.objects;
 
+import cz.muni.fi.image.net.core.enums.UIMode;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
@@ -348,6 +350,22 @@ public class Configuration {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="UIMode">
+    /**
+     *
+     */
+    @Desc("UI mode:")
+    private UIMode uIMode = null;
+
+    public UIMode getUIMode() {
+        return uIMode;
+    }
+
+    public void setUIMode(UIMode uIMode) {
+        this.uIMode = uIMode;
     }
     //</editor-fold>
 

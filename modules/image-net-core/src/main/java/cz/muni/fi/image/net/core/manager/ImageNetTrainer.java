@@ -7,6 +7,7 @@ import cz.muni.fi.image.net.core.objects.DataSet;
 import cz.muni.fi.image.net.core.objects.Label;
 import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 import org.bytedeco.javacpp.Pointer;
+import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.saver.LocalFileGraphSaver;
@@ -26,10 +27,13 @@ import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.parallelism.EarlyStoppingParallelTrainer;
 import org.deeplearning4j.parallelism.ParallelWrapper;
+import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.J7StatsListener;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.FileStatsStorage;
+import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
+import org.deeplearning4j.ui.weights.ConvolutionalIterationListener;
 import org.nd4j.jita.conf.CudaEnvironment;
 import org.nd4j.linalg.api.ops.executioner.OpExecutioner;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -38,6 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -163,29 +169,53 @@ public class ImageNetTrainer {
     private void setupStatInterface(
             Model model
     ) {
-
-        File storeFile = new File(this.conf.getTempFolder() + "/model/storage_file");
-        IterationListener statListener;
-        if (this.conf.getJavaMinorVersion() == 7) {
-            statListener = new J7StatsListener(
-                    new J7FileStatsStorage(
-                            storeFile
-                    )
-            );
-        } else if (this.conf.getJavaMinorVersion() > 7) {
-            statListener = new StatsListener(
-                    new FileStatsStorage(
-                            storeFile
-                    )
-            );
-        } else {
-            throw new IllegalStateException("version of java is too small. Upgrade your Java at least to 1.7");
+        if(this.conf.getUIMode() != null) {
+            List<IterationListener> iterationListeners = Arrays.asList(uiSetting());
+            iterationListeners.add(new ScoreIterationListener(1));
+            model.setListeners(iterationListeners.toArray(new IterationListener[0]));
         }
-        model.setListeners(
-                //new ConvolutionalIterationListener(store,10,false),
-                statListener,
-                new ScoreIterationListener(1)
-        );
+        else{
+            model.setListeners(new ScoreIterationListener(1));
+        }
+    }
+
+    private IterationListener[] uiSetting(){
+        //TODO: implement REMOTE and set STORAGE default
+        switch (this.conf.getUIMode()){
+            case ONLINE:
+                if(this.conf.getJavaMinorVersion() < 8) throw new UnsupportedOperationException("Online cannot be used in Java 7");
+                UIServer uiServer = UIServer.getInstance();
+                StatsStorage statsStorage= new InMemoryStatsStorage();
+                uiServer.attach(statsStorage);
+                return new IterationListener[]{
+                        new StatsListener(statsStorage),
+                        new ConvolutionalIterationListener(
+                                statsStorage,
+                                10,
+                                false)};
+            case REMOTE:
+                throw  new UnsupportedOperationException("Not implemented yet.");
+            case STORAGE:
+                File storeFile = new File(this.conf.getTempFolder() + "/model/storage_file");
+                IterationListener statListener;
+                if (this.conf.getJavaMinorVersion() == 7) {
+                    statListener = new J7StatsListener(
+                            new J7FileStatsStorage(
+                                    storeFile
+                            )
+                    );
+                } else if (this.conf.getJavaMinorVersion() > 7) {
+                    statListener = new StatsListener(
+                            new FileStatsStorage(
+                                    storeFile
+                            )
+                    );
+                } else {
+                    throw new IllegalStateException("version of java is too small. Upgrade your Java at least to 1.7");
+                }
+                return new IterationListener[]{statListener};
+        }
+        throw new IllegalStateException("One of previous must be selected");
     }
 
 

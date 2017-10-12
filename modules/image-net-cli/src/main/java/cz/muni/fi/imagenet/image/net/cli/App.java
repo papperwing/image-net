@@ -1,6 +1,7 @@
 package cz.muni.fi.imagenet.image.net.cli;
 
 import cz.muni.fi.image.net.api.dto.DataSampleDTO;
+import cz.muni.fi.image.net.core.enums.UIMode;
 import cz.muni.fi.image.net.core.objects.Configuration;
 import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.api.ImageNetAPI;
@@ -96,6 +97,10 @@ public class App {
             config.setJavaMinorVersion(ArgLoader.javaVersion);
         }
 
+        if (ArgLoader.uiMode != null) {
+            config.setUIMode(UIMode.valueOf(ArgLoader.uiMode));
+        }
+
         ImageNetAPI api = new ImageNetAPI(config);
         logger.info(config.toString());
 
@@ -105,7 +110,6 @@ public class App {
                 break;
             case "CLASSIFY":
                 classify(api);
-
                 break;
             case "EVALUATE":
                 evaluate(api);
