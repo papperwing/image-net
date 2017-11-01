@@ -6,9 +6,7 @@ import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.NeuralNetModelWrapper;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.LearningRatePolicy;
@@ -207,40 +205,55 @@ public class ModelBuilderImpl implements ModelBuilder {
                 1,
                 WorkspaceMode.SEPARATE
         );
+
+        List<Integer> values = new ArrayList<>(dataSet.getLabelDistribution().values());
+        logger.info("Labels: " + values.size());
+        double[] dValues = new double [values.size()];
+        for (int i =0 ; i < values.size(); i++){
+            dValues[i] = values.get(i).doubleValue();
+        }
+        INDArray ones = Nd4j.ones(values.size());
+        INDArray iValues = Nd4j.create(dValues);
+        INDArray normValues = Transforms.unitVec(iValues);//iValues.divi(iValues.norm1Number());
+        logger.info("Normalized INDA: " + normValues);
+        INDArray weights = ones.sub(normValues);
+        logger.info("Subbed INDA: " + weights);
+
+        Map<Integer,Double> lrsch = new LinkedHashMap<>();
+        lrsch.put(500, 0.0001);
+        lrsch.put(1000, 0.00005);
+        lrsch.put(2000, 0.00001);
+        lrsch.put(2000, 0.000008);
+        lrsch.put(4000, 0.000005);
+        lrsch.put(8000, 0.000002);
+        lrsch.put(10000, 0.000001);
+
         try {
             ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.IMAGENET);
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .learningRate(this.config.getLearningRate())
+                    .learningRatePolicy(LearningRatePolicy.Schedule)
+                    .learningRateSchedule(lrsch)
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                     .l1(this.config.getL1())
                     .l2(this.config.getL2())
-                    .updater(Updater.NESTEROVS)
+                    .updater(Updater.ADAM)
                     .seed(this.config.getSeed())
                     .build();
 
             ComputationGraph model = new TransferLearning.GraphBuilder(zooModelOriginal)
-                    .setFeatureExtractor("flatten_3")
+                    .setFeatureExtractor("activation_141")
                     .fineTuneConfiguration(fineTuneConf)
                     .removeVertexKeepConnections("fc1000")
-                    .addLayer("nonlinearity",
-                            new DenseLayer.Builder()
-                                    .nIn(2048)
-                                    .nOut(1024)
-                                    .activation(Activation.LEAKYRELU)
-                                    .weightInit(WeightInit.RELU)
-                                    .biasInit(0)
-                                    .build(),
-                            "flatten_3"
-                    )
                     .addLayer("fc1000",
-                            new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
-                                    .nIn(1024)
+                            new OutputLayer.Builder(new LossBinaryXENT(weights))
+                                    .nIn(2048)
                                     .nOut(dataSet.getLabels().size())
                                     .activation(Activation.SIGMOID)
                                     .weightInit(WeightInit.XAVIER)
                                     .dropOut(0)
                                     .build(),
-                            "nonlinearity"
+                            "flatten_3"
                     )
                     .setOutputs("fc1000")
                     .setWorkspaceMode(WorkspaceMode.SEPARATE)

@@ -170,7 +170,7 @@ public class ImageNetTrainer {
             Model model
     ) {
         if(this.conf.getUIMode() != null) {
-            List<IterationListener> iterationListeners = Arrays.asList(uiSetting());
+            List<IterationListener> iterationListeners = new ArrayList<>(Arrays.asList(uiSetting()));
             iterationListeners.add(new ScoreIterationListener(1));
             model.setListeners(iterationListeners.toArray(new IterationListener[0]));
         }
@@ -189,10 +189,10 @@ public class ImageNetTrainer {
                 uiServer.attach(statsStorage);
                 return new IterationListener[]{
                         new StatsListener(statsStorage),
-                        new ConvolutionalIterationListener(
+                        /*new ConvolutionalIterationListener(
                                 statsStorage,
                                 10,
-                                false)};
+                                false)*/};
             case REMOTE:
                 throw  new UnsupportedOperationException("Not implemented yet.");
             case STORAGE:

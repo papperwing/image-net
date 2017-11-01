@@ -102,7 +102,7 @@ public class App {
         }
 
         ImageNetAPI api = new ImageNetAPI(config);
-        logger.info(config.toString());
+        //logger.info(config.toString());
 
         switch (ArgLoader.method) {
             case "TRAIN":
@@ -126,7 +126,7 @@ public class App {
     private static void train(final ImageNetAPI api) throws IllegalArgumentException, IOException {
         final File datasetFile = new File(ArgLoader.datasetLoc);
         if (!datasetFile.isFile() || !datasetFile.canRead()) {
-            throw new IllegalArgumentException("There is wrong path to dataset file.");
+            throw new IllegalArgumentException("There is wrong path to dataset file: " + datasetFile.getAbsolutePath());
         }
         logger.info("Loading dataset: " + datasetFile.getAbsolutePath());
 
