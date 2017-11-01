@@ -1,5 +1,6 @@
 package cz.muni.fi.image.net.core.manager;
 
+import cz.muni.fi.image.net.core.dataset.Evaluation.DataSetEvaluationCalculator;
 import cz.muni.fi.image.net.core.dataset.processor.DataSetTransform;
 import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.Configuration;
@@ -295,7 +296,7 @@ public class ImageNetTrainer {
             final EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder<ComputationGraph>()
                     .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
                     .modelSaver(new LocalFileGraphSaver(tempDirLoc))
-                    .scoreCalculator(new DataSetLossCalculatorCG(testDataSet, true))
+                    .scoreCalculator(new DataSetEvaluationCalculator(testDataSet))
                     .evaluateEveryNEpochs(1);
 
             if (this.conf.isTimed()) {
