@@ -224,9 +224,9 @@ public class ModelBuilderImpl implements ModelBuilder {
         lrsch.put(1000, 0.00005);
         lrsch.put(2000, 0.00001);
         lrsch.put(2000, 0.000008);
-        lrsch.put(4000, 0.000005);
-        lrsch.put(8000, 0.000002);
-        lrsch.put(10000, 0.000001);
+        lrsch.put(4000, 0.000002);
+        lrsch.put(8000, 0.000001);
+        lrsch.put(10000, 0.0000005);
 
         try {
             ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.IMAGENET);
@@ -242,7 +242,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                     .build();
 
             ComputationGraph model = new TransferLearning.GraphBuilder(zooModelOriginal)
-                    .setFeatureExtractor("activation_141")
+                    .setFeatureExtractor("activation_138")
                     .fineTuneConfiguration(fineTuneConf)
                     .removeVertexKeepConnections("fc1000")
                     .addLayer("fc1000",

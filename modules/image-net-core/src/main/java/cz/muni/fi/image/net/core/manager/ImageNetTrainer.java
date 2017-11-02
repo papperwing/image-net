@@ -1,6 +1,6 @@
 package cz.muni.fi.image.net.core.manager;
 
-import cz.muni.fi.image.net.core.dataset.Evaluation.DataSetEvaluationCalculator;
+import cz.muni.fi.image.net.core.dataset.evaluation.DataSetEvaluationCalculator;
 import cz.muni.fi.image.net.core.dataset.processor.DataSetTransform;
 import cz.muni.fi.image.net.core.enums.ModelType;
 import cz.muni.fi.image.net.core.objects.Configuration;
@@ -34,7 +34,6 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.FileStatsStorage;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
-import org.deeplearning4j.ui.weights.ConvolutionalIterationListener;
 import org.nd4j.jita.conf.CudaEnvironment;
 import org.nd4j.linalg.api.ops.executioner.OpExecutioner;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -88,6 +87,7 @@ public class ImageNetTrainer {
     ) {
 
         Nd4j.getMemoryManager().setAutoGcWindow(2500);
+
 
         if (this.conf.isDebug()) {
             Nd4j.getExecutioner().setProfilingMode(OpExecutioner.ProfilingMode.ANY_PANIC);

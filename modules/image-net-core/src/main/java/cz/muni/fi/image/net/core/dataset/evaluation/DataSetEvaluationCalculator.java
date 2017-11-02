@@ -1,10 +1,8 @@
-package cz.muni.fi.image.net.core.dataset.Evaluation;
+package cz.muni.fi.image.net.core.dataset.evaluation;
 
 import org.deeplearning4j.earlystopping.scorecalc.ScoreCalculator;
 import org.deeplearning4j.eval.EvaluationBinary;
 import org.deeplearning4j.nn.graph.ComputationGraph;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +23,8 @@ public class DataSetEvaluationCalculator implements ScoreCalculator<ComputationG
                 iterator.reset();
         EvaluationBinary eval = new EvaluationBinary(5,null);
                 network.doEvaluation(iterator,eval);
-                logger.info(eval.stats());
-        return 1-eval.averagePrecision();
+                logger.info("\n" + eval.stats());
+                logger.info("Actual average F1: " + eval.averageF1());
+        return 1-eval.averageF1();
     }
 }
