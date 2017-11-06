@@ -237,6 +237,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                     .l1(this.config.getL1())
                     .l2(this.config.getL2())
+                    .regularization(true)
                     .updater(Updater.ADAM)
                     .seed(this.config.getSeed())
                     .build();

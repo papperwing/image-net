@@ -23,8 +23,10 @@ public class DataSetEvaluationCalculator implements ScoreCalculator<ComputationG
                 iterator.reset();
         EvaluationBinary eval = new EvaluationBinary(5,null);
                 network.doEvaluation(iterator,eval);
-                logger.info("\n" + eval.stats());
-                logger.info("Actual average F1: " + eval.averageF1());
+                logger.info("\n" + eval.stats() + "\n" +
+                        "Actual average F1: " + eval.averageF1() + "\n" +
+                        "Actual average precision: " + eval.averagePrecision() +"\n" +
+                        "Actual average recall: " + eval.averageF1());
         return 1-eval.averageF1();
     }
 }
