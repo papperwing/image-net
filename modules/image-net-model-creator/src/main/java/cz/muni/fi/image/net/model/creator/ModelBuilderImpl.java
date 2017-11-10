@@ -33,6 +33,9 @@ import org.nd4j.linalg.learning.config.Nadam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.impl.LossBinaryXENT;
 import org.nd4j.linalg.ops.transforms.Transforms;
+import org.nd4j.linalg.schedule.ISchedule;
+import org.nd4j.linalg.schedule.MapSchedule;
+import org.nd4j.linalg.schedule.ScheduleType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,12 +70,12 @@ public class ModelBuilderImpl implements ModelBuilder {
         switch (modelType) {
             case VGG16:
                 return createVggModel(dataSet);
-            case LENET:
-                return createLeNetModel(dataSet);
+            //case LENET:
+            //    return createLeNetModel(dataSet);
             case RESNET50:
                 return createResnet50(dataSet);
-            case ALEXNET:
-                return createAlexNet(dataSet);
+            //case ALEXNET:
+            //    return createAlexNet(dataSet);
         }
         throw new IllegalArgumentException("Unsuported modelWrapper type selected.");
     }
@@ -83,7 +86,7 @@ public class ModelBuilderImpl implements ModelBuilder {
      * @param dataSet Data sample set containing images and labels
      * @return {@link NeuralNetModelWrapper} containing adapted configuration of AlexNet
      */
-    private NeuralNetModelWrapper createAlexNet(final DataSet dataSet) {
+    /*private NeuralNetModelWrapper createAlexNet(final DataSet dataSet) {
         final ZooModel zooModel = new AlexNet(
                 dataSet.getLabels().size(),
                 this.config.getSeed(),
@@ -116,7 +119,7 @@ public class ModelBuilderImpl implements ModelBuilder {
                         .activation(Activation.RELU)
                         .build())
                 .addLayer(new OutputLayer.Builder(LossFunctions.LossFunction.XENT)
-                        .lossFunction(new LossBinaryXENT(/*lossWeights*/))
+                        .lossFunction(new LossBinaryXENT())
                         .nIn(1024)
                         .nOut(dataSet.getLabels().size())
                         .dropOut(0)
@@ -129,7 +132,7 @@ public class ModelBuilderImpl implements ModelBuilder {
 
         logger.info("New modelWrapper:\n" + model.summary());
         return new NeuralNetModelWrapper(model, dataSet.getLabels(), ModelType.ALEXNET);
-    }
+    }*/
 
     /**
      * Create modelWrapper for other use.
@@ -137,7 +140,7 @@ public class ModelBuilderImpl implements ModelBuilder {
      * @param dataSet Data sample set containing images and labels
      * @return {@link NeuralNetModelWrapper} containing adapted configuration of LeNet
      */
-    public NeuralNetModelWrapper createLeNetModel(final DataSet dataSet) {
+    /*public NeuralNetModelWrapper createLeNetModel(final DataSet dataSet) {
         ZooModel zooModel = new LeNet(
                 dataSet.getLabels().size(),
                 this.config.getSeed(),
@@ -189,7 +192,7 @@ public class ModelBuilderImpl implements ModelBuilder {
         } catch (IOException ex) {
             throw new IllegalStateException("Model weights was not loaded", ex);
         }
-    }
+    }*/
 
 
     /**
@@ -220,25 +223,23 @@ public class ModelBuilderImpl implements ModelBuilder {
         logger.info("Subbed INDA: " + weights);
 
         Map<Integer,Double> lrsch = new LinkedHashMap<>();
+        lrsch.put(0,this.config.getLearningRate());
         lrsch.put(500, 0.0001);
         lrsch.put(1000, 0.00005);
         lrsch.put(2000, 0.00001);
-        lrsch.put(2000, 0.000008);
-        lrsch.put(4000, 0.000002);
+        lrsch.put(4000, 0.000008);
+        lrsch.put(6000, 0.000002);
         lrsch.put(8000, 0.000001);
         lrsch.put(10000, 0.0000005);
+        ISchedule lrSchedule = new MapSchedule(ScheduleType.ITERATION,lrsch);
 
         try {
             ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.IMAGENET);
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
-                    .learningRate(this.config.getLearningRate())
-                    .learningRatePolicy(LearningRatePolicy.Schedule)
-                    .learningRateSchedule(lrsch)
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                     .l1(this.config.getL1())
                     .l2(this.config.getL2())
-                    .regularization(true)
-                    .updater(Updater.ADAM)
+                    .updater(new Adam.Builder().learningRateSchedule(lrSchedule).build())
                     .seed(this.config.getSeed())
                     .build();
 
