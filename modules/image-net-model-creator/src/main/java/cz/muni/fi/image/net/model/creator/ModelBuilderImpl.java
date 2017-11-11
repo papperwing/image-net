@@ -224,13 +224,13 @@ public class ModelBuilderImpl implements ModelBuilder {
 
         Map<Integer,Double> lrsch = new LinkedHashMap<>();
         lrsch.put(0,this.config.getLearningRate());
-        lrsch.put(500, 0.0001);
-        lrsch.put(1000, 0.00005);
-        lrsch.put(2000, 0.00001);
-        lrsch.put(4000, 0.000008);
-        lrsch.put(6000, 0.000002);
-        lrsch.put(8000, 0.000001);
-        lrsch.put(10000, 0.0000005);
+        lrsch.put(500, 0.001);
+        lrsch.put(1000, 0.0005);
+        lrsch.put(2000, 0.0001);
+        lrsch.put(4000, 0.00008);
+        lrsch.put(6000, 0.00002);
+        lrsch.put(8000, 0.00001);
+        lrsch.put(10000, 0.000005);
         ISchedule lrSchedule = new MapSchedule(ScheduleType.ITERATION,lrsch);
 
         try {
