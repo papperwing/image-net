@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.LearningRatePolicy;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
@@ -28,14 +29,13 @@ import org.deeplearning4j.zoo.model.ResNet50;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.learning.config.AdaDelta;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.learning.config.Nadam;
+import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.impl.LossBinaryXENT;
 import org.nd4j.linalg.ops.transforms.Transforms;
-import org.nd4j.linalg.schedule.ISchedule;
-import org.nd4j.linalg.schedule.MapSchedule;
-import org.nd4j.linalg.schedule.ScheduleType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -224,14 +224,16 @@ public class ModelBuilderImpl implements ModelBuilder {
 
         Map<Integer,Double> lrsch = new LinkedHashMap<>();
         lrsch.put(0,this.config.getLearningRate());
-        lrsch.put(500, 0.001);
-        lrsch.put(1000, 0.0005);
-        lrsch.put(2000, 0.0001);
-        lrsch.put(4000, 0.00008);
-        lrsch.put(6000, 0.00002);
-        lrsch.put(8000, 0.00001);
-        lrsch.put(10000, 0.000005);
-        ISchedule lrSchedule = new MapSchedule(ScheduleType.ITERATION,lrsch);
+        lrsch.put(500, 0.0001);
+        lrsch.put(1000, 0.00005);
+        lrsch.put(2000, 0.00001);
+        lrsch.put(4000, 0.000008);
+        lrsch.put(6000, 0.000002);
+        lrsch.put(8000, 0.000001);
+        lrsch.put(10000, 0.0000005);
+        lrsch.put(20000, 0.0000001);
+        lrsch.put(30000, 0.00000008);
+        lrsch.put(40000, 0.00000005);
 
         try {
             ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.IMAGENET);
@@ -239,12 +241,17 @@ public class ModelBuilderImpl implements ModelBuilder {
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                     .l1(this.config.getL1())
                     .l2(this.config.getL2())
-                    .updater(new Adam.Builder().learningRateSchedule(lrSchedule).build())
+                    .learningRate(this.config.getLearningRate())
+                    .learningRatePolicy(LearningRatePolicy.Schedule)
+                    .learningRateSchedule(lrsch)
+                    .dropOut(this.config.getDropout())
+                    .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
+                    .updater(new Adam.Builder().build())
                     .seed(this.config.getSeed())
                     .build();
 
             ComputationGraph model = new TransferLearning.GraphBuilder(zooModelOriginal)
-                    .setFeatureExtractor("activation_138")
+                    //.setFeatureExtractor("activation_138")
                     .fineTuneConfiguration(fineTuneConf)
                     .removeVertexKeepConnections("fc1000")
                     .addLayer("fc1000",

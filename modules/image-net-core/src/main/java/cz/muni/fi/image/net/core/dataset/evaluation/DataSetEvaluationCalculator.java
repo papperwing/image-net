@@ -26,7 +26,7 @@ public class DataSetEvaluationCalculator implements ScoreCalculator<ComputationG
                 logger.info("\n" + eval.stats() + "\n" +
                         "Actual average F1: " + eval.averageF1() + "\n" +
                         "Actual average precision: " + eval.averagePrecision() +"\n" +
-                        "Actual average recall: " + eval.averageF1());
+                        "Actual average recall: " + eval.averageRecall());
         return 1-eval.averageF1();
     }
 }
