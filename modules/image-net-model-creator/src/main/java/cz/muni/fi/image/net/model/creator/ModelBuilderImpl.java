@@ -29,10 +29,7 @@ import org.deeplearning4j.zoo.model.ResNet50;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.learning.config.AdaDelta;
-import org.nd4j.linalg.learning.config.Adam;
-import org.nd4j.linalg.learning.config.Nadam;
-import org.nd4j.linalg.learning.config.Nesterovs;
+import org.nd4j.linalg.learning.config.*;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.impl.LossBinaryXENT;
 import org.nd4j.linalg.ops.transforms.Transforms;
@@ -205,7 +202,7 @@ public class ModelBuilderImpl implements ModelBuilder {
         ZooModel zooModel = new ResNet50(
                 dataSet.getLabels().size(),
                 this.config.getSeed(),
-                1,
+                2,
                 WorkspaceMode.SEPARATE
         );
 
@@ -225,15 +222,9 @@ public class ModelBuilderImpl implements ModelBuilder {
         Map<Integer,Double> lrsch = new LinkedHashMap<>();
         lrsch.put(0,this.config.getLearningRate());
         lrsch.put(500, 0.0001);
-        lrsch.put(1000, 0.00005);
-        lrsch.put(2000, 0.00001);
-        lrsch.put(4000, 0.000008);
-        lrsch.put(6000, 0.000002);
-        lrsch.put(8000, 0.000001);
-        lrsch.put(10000, 0.0000005);
-        lrsch.put(20000, 0.0000001);
-        lrsch.put(30000, 0.00000008);
-        lrsch.put(40000, 0.00000005);
+        lrsch.put(2000, 0.00005);
+        lrsch.put(4000, 0.00002);
+        lrsch.put(6000, 0.00001);
 
         try {
             ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.IMAGENET);
@@ -246,12 +237,13 @@ public class ModelBuilderImpl implements ModelBuilder {
                     .learningRateSchedule(lrsch)
                     .dropOut(this.config.getDropout())
                     .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
+                    .gradientNormalizationThreshold(0.5)
                     .updater(new Adam.Builder().build())
                     .seed(this.config.getSeed())
                     .build();
 
             ComputationGraph model = new TransferLearning.GraphBuilder(zooModelOriginal)
-                    //.setFeatureExtractor("activation_138")
+                    .setFeatureExtractor("activation_144")
                     .fineTuneConfiguration(fineTuneConf)
                     .removeVertexKeepConnections("fc1000")
                     .addLayer("fc1000",

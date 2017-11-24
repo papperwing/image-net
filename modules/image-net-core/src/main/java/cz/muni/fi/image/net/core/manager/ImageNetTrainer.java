@@ -34,6 +34,7 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.FileStatsStorage;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.ui.storage.sqlite.J7FileStatsStorage;
+import org.deeplearning4j.ui.weights.ConvolutionalIterationListener;
 import org.nd4j.jita.conf.CudaEnvironment;
 import org.nd4j.linalg.api.ops.executioner.OpExecutioner;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -189,7 +190,7 @@ public class ImageNetTrainer {
                 StatsStorage statsStorage= new InMemoryStatsStorage();
                 uiServer.attach(statsStorage);
                 return new IterationListener[]{
-                        new StatsListener(statsStorage),
+                        new StatsListener(statsStorage, 50),
                         /*new ConvolutionalIterationListener(
                                 statsStorage,
                                 10,
@@ -203,13 +204,15 @@ public class ImageNetTrainer {
                     statListener = new J7StatsListener(
                             new J7FileStatsStorage(
                                     storeFile
-                            )
+                            ),
+                            50
                     );
                 } else if (this.conf.getJavaMinorVersion() > 7) {
                     statListener = new StatsListener(
                             new FileStatsStorage(
                                     storeFile
-                            )
+                            ),
+                            50
                     );
                 } else {
                     throw new IllegalStateException("version of java is too small. Upgrade your Java at least to 1.7");
@@ -296,7 +299,7 @@ public class ImageNetTrainer {
             final EarlyStoppingConfiguration.Builder<ComputationGraph> builder = new EarlyStoppingConfiguration.Builder<ComputationGraph>()
                     .epochTerminationConditions(new MaxEpochsTerminationCondition(this.conf.getEpoch()))
                     .modelSaver(new LocalFileGraphSaver(tempDirLoc))
-                    .scoreCalculator(new DataSetEvaluationCalculator(testDataSet))
+                    .scoreCalculator(new DataSetEvaluationCalculator(testDataSet,trainDataSet))
                     .evaluateEveryNEpochs(1);
 
             if (this.conf.isTimed()) {

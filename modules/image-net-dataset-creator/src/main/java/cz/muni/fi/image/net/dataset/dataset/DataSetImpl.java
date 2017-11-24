@@ -41,6 +41,7 @@ public class DataSetImpl implements DataSet {
                 throw new IllegalArgumentException("DataSample contains unknown label" + sample.toString());
             }
         }
+        Collections.shuffle(this.dataList);
     }
 
 
