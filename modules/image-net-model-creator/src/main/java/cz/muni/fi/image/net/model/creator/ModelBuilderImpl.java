@@ -222,22 +222,25 @@ public class ModelBuilderImpl implements ModelBuilder {
         Map<Integer,Double> lrsch = new LinkedHashMap<>();
         lrsch.put(0,this.config.getLearningRate());
         lrsch.put(500, 0.0001);
-        lrsch.put(2000, 0.00005);
-        lrsch.put(4000, 0.00002);
-        lrsch.put(6000, 0.00001);
+        lrsch.put(1000, 0.00005);
+        lrsch.put(2000, 0.00001);
+        lrsch.put(4000, 0.000008);
+        lrsch.put(6000, 0.000002);
+        lrsch.put(8000, 0.000001);
+        lrsch.put(15000, 0.0000005);
 
         try {
             ComputationGraph zooModelOriginal = (ComputationGraph) zooModel.initPretrained(PretrainedType.IMAGENET);
             FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                     .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                    .l1(this.config.getL1())
-                    .l2(this.config.getL2())
+                    //.l1(this.config.getL1())
+                    //.l2(this.config.getL2())
                     .learningRate(this.config.getLearningRate())
                     .learningRatePolicy(LearningRatePolicy.Schedule)
                     .learningRateSchedule(lrsch)
                     .dropOut(this.config.getDropout())
                     .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
-                    .gradientNormalizationThreshold(0.5)
+                    .gradientNormalizationThreshold(0.1)
                     .updater(new Adam.Builder().build())
                     .seed(this.config.getSeed())
                     .build();

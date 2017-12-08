@@ -153,7 +153,7 @@ public class App {
     }
 
     private static void classify(final ImageNetAPI api) throws IOException {
-        final String imageURI = ArgLoader.imageURI;
+        final String[] imageURI = ArgLoader.imageURI;
         final String modelLocation = ArgLoader.modelLoc;
 
         final List<String> labelNameList = new ArrayList();
@@ -161,9 +161,11 @@ public class App {
             labelNameList.add(labelName);
         }
         //TODO: create object for List<List<>> object
-        final List<List<String>> classify = api.classify(modelLocation, labelNameList, imageURI);
+        for(String image :imageURI){
+        final List<List<String>> classify = api.classify(modelLocation, labelNameList, image);
         for (List<String> result : classify) {
-            logger.info("Labels: " + result.toString());
+            logger.info("Labels for file " + image +  " : " + result.toString());
+        }
         }
     }
 

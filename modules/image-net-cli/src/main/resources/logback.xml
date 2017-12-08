@@ -33,7 +33,7 @@
     <logger name="cz.sa.dovolena" level="DEBUG"/>
    
  
-    <root level="debug">
+    <root level="info">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE-AUDIT" />
     </root>

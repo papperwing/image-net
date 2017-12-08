@@ -30,7 +30,7 @@ public class ImageNormalizer {
     public DataNormalization getDataNormalization() {
         switch (modelType) {
             case RESNET50:
-                return new ImagePreProcessingScaler(-1, 1);
+                return new VGG16ImagePreProcessor()/*ImagePreProcessingScaler(-1, 1)*/;
             case VGG16:
                 return new VGG16ImagePreProcessor();
             case LENET:

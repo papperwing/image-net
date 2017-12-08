@@ -25,7 +25,7 @@ public class ArgLoader {
     @Argument(alias = "method", description = "Run specific test method", required = false)
     public static String method;
     @Argument(alias = "imageURI", description = "Location of image for classification", required = false)
-    public static String imageURI;
+    public static String[] imageURI;
     @Argument(alias = "labelList", description = "List of labels", required = false, delimiter = ",")
     public static String[] labelList;
     @Argument(alias = "modelLoc", description = "Trained modelWrapper location", required = false)

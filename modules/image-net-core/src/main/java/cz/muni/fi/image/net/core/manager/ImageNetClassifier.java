@@ -10,6 +10,7 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
+import org.nd4j.linalg.dataset.api.preprocessor.VGG16ImagePreProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,7 +109,7 @@ public class ImageNetClassifier {
     ) throws IOException {
         final NativeImageLoader loader = new NativeImageLoader(224, 224, 3);
         final INDArray imageVector = loader.asMatrix(image);
-        final DataNormalization scaler = new ImagePreProcessingScaler(-1, 1);
+        final DataNormalization scaler = new VGG16ImagePreProcessor();
         scaler.transform(imageVector);
         return imageVector;
     }
